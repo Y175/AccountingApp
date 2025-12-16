@@ -50,7 +50,12 @@ fun AppNavigation() {
             modifier = Modifier.padding(innerPadding)
         ) {
             composable(Screen.Home.route) {
-                HomeScreen(viewModel = viewModel)
+                HomeScreen(
+                    viewModel = viewModel,
+                    onTransactionClick = { id ->
+                        navController.navigate(Screen.TransactionDetail.createRoute(id))
+                    }
+                )
             }
             composable(Screen.Statistics.route) {
                 StatisticsScreen(
@@ -77,6 +82,18 @@ fun AppNavigation() {
                 com.example.accountingapp.ui.statistics.CategoryDetailsScreen(
                     viewModel = viewModel,
                     categoryName = categoryName,
+                    onBack = { navController.popBackStack() }
+                )
+            }
+
+            composable(
+                route = Screen.TransactionDetail.route,
+                arguments = listOf(androidx.navigation.navArgument("transactionId") { type = androidx.navigation.NavType.IntType })
+            ) { backStackEntry ->
+                val transactionId = backStackEntry.arguments?.getInt("transactionId") ?: 0
+                com.example.accountingapp.ui.home.TransactionDetailScreen(
+                    viewModel = viewModel,
+                    transactionId = transactionId,
                     onBack = { navController.popBackStack() }
                 )
             }

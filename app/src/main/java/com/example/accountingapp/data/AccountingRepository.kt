@@ -10,12 +10,20 @@ class AccountingRepository(private val transactionDao: TransactionDao) {
         return transactionDao.getTransactionsByDateRange(start, end)
     }
 
+    fun getTransaction(id: Int): Flow<Transaction?> {
+        return transactionDao.getTransactionById(id)
+    }
+
     suspend fun insert(transaction: Transaction) {
         transactionDao.insertTransaction(transaction)
     }
     
     suspend fun delete(transaction: Transaction) {
         transactionDao.deleteTransaction(transaction)
+    }
+
+    suspend fun update(transaction: Transaction) {
+        transactionDao.updateTransaction(transaction)
     }
 
     fun getIncomeSum(start: Long, end: Long): Flow<Double?> {

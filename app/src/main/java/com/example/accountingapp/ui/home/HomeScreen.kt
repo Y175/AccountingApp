@@ -2,6 +2,7 @@ package com.example.accountingapp.ui.home
 
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -16,16 +17,22 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.KeyboardArrowLeft
+import androidx.compose.material.icons.filled.KeyboardArrowRight
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -36,22 +43,27 @@ import com.example.accountingapp.ui.components.AnimatedItem
 import com.example.accountingapp.ui.components.OverviewCard
 import com.example.accountingapp.ui.components.TransactionItem
 import com.example.accountingapp.ui.theme.YellowPrimary
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import java.text.SimpleDateFormat
+import java.util.Calendar
 import java.util.Date
 import java.util.Locale
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
-fun HomeScreen(viewModel: MainViewModel) {
+fun HomeScreen(viewModel: MainViewModel, onTransactionClick: (Int) -> Unit) {
     val transactions by viewModel.currentMonthTransactions.collectAsState()
     val income by viewModel.currentMonthIncome.collectAsState()
     val expense by viewModel.currentMonthExpense.collectAsState()
-    
+
+    // 当前选择的年月
+    var selectedYear by remember { mutableStateOf(Calendar.getInstance().get(Calendar.YEAR)) }
+    var selectedMonth by remember { mutableStateOf(Calendar.getInstance().get(Calendar.MONTH) + 1) }
+
+    // 显示月份选择器
+    var showMonthPicker by remember { mutableStateOf(false) }
+
     // Group transactions by date
-    val groupedTransactions = transactions.groupBy { 
+    val groupedTransactions = transactions.groupBy {
         SimpleDateFormat("MM.dd EEEE", Locale.CHINA).format(Date(it.date))
     }
 
@@ -83,10 +95,25 @@ fun HomeScreen(viewModel: MainViewModel) {
         )
     }
 
+    // 月份选择器弹窗
+    if (showMonthPicker) {
+        MonthPickerDialog(
+            currentYear = selectedYear,
+            currentMonth = selectedMonth,
+            onDismiss = { showMonthPicker = false },
+            onMonthSelected = { year, month ->
+                selectedYear = year
+                selectedMonth = month
+                viewModel.setSelectedMonth(year, month)
+                showMonthPicker = false
+            }
+        )
+    }
+
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(YellowPrimary) // Top background is yellow
+            .background(YellowPrimary)
     ) {
         // Top Header
         Row(
@@ -103,23 +130,23 @@ fun HomeScreen(viewModel: MainViewModel) {
                     color = Color.Black
                 )
                 Spacer(modifier = Modifier.height(4.dp))
-
             }
-            // Mascot placeholder (Circle)
+            // Mascot placeholder
             Box(
                 modifier = Modifier
                     .size(48.dp)
                     .background(Color.White, RoundedCornerShape(24.dp))
-            ) {
-                // Image would go here
-            }
+            )
         }
 
-        // Main Content (White background with rounded top corners)
+        // Main Content
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .background(Color.Gray.copy(alpha = 0.05f), RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp))
+                .background(
+                    Color.Gray.copy(alpha = 0.05f),
+                    RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp)
+                )
         ) {
             LazyColumn(
                 modifier = Modifier.fillMaxSize()
@@ -129,8 +156,8 @@ fun HomeScreen(viewModel: MainViewModel) {
                         income = income,
                         expense = expense,
                         balance = income - expense,
-                        currentMonth = "2025\n12月", // Dynamic later
-                        onMonthClick = {}
+                        currentMonth = "${selectedYear}\n${selectedMonth}月",
+                        onMonthClick = { showMonthPicker = true }
                     )
                 }
 
@@ -142,6 +169,9 @@ fun HomeScreen(viewModel: MainViewModel) {
                         AnimatedItem {
                             TransactionItem(
                                 transaction = transaction,
+                                onClick = {
+                                    onTransactionClick(transaction.id.toInt())
+                                },
                                 onLongClick = {
                                     transactionToDelete = transaction
                                     showDeleteDialog = true
@@ -150,7 +180,7 @@ fun HomeScreen(viewModel: MainViewModel) {
                         }
                     }
                 }
-                
+
                 // Bottom spacer for FAB
                 item { Spacer(modifier = Modifier.height(80.dp)) }
             }
@@ -162,11 +192,11 @@ fun HomeScreen(viewModel: MainViewModel) {
 fun DateHeader(dateString: String, transactions: List<Transaction>) {
     val dailyIncome = transactions.filter { it.type == TransactionType.INCOME }.sumOf { it.amount }
     val dailyExpense = transactions.filter { it.type == TransactionType.EXPENSE }.sumOf { it.amount }
-    
+
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .background(Color(0xFFF5F5F5)) // Light gray background for sticky header
+            .background(Color(0xFFF5F5F5))
             .padding(horizontal = 16.dp, vertical = 8.dp),
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically
@@ -185,7 +215,7 @@ fun DateHeader(dateString: String, transactions: List<Transaction>) {
                 fontWeight = FontWeight.Bold
             )
         }
-        
+
         Row {
             if (dailyIncome > 0) {
                 Text(
@@ -203,5 +233,90 @@ fun DateHeader(dateString: String, transactions: List<Transaction>) {
                 )
             }
         }
+    }
+}
+
+// 月份选择器弹窗
+@OptIn(androidx.compose.material3.ExperimentalMaterial3Api::class)
+@Composable
+fun MonthPickerDialog(
+    currentYear: Int,
+    currentMonth: Int,
+    onDismiss: () -> Unit,
+    onMonthSelected: (Int, Int) -> Unit
+) {
+    var selectedYear by remember { mutableStateOf(currentYear) }
+
+    androidx.compose.material3.AlertDialog(
+        onDismissRequest = onDismiss,
+        title = {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                IconButton(onClick = { selectedYear-- }) {
+                    Icon(Icons.Default.KeyboardArrowLeft, contentDescription = "上一年")
+                }
+                Text("${selectedYear}年", style = MaterialTheme.typography.titleLarge)
+                IconButton(onClick = { selectedYear++ }) {
+                    Icon(Icons.Default.KeyboardArrowRight, contentDescription = "下一年")
+                }
+            }
+        },
+        text = {
+            Column(
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                // 月份网格 (3行4列)
+                for (row in 0..2) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceEvenly
+                    ) {
+                        for (col in 1..4) {
+                            val month = row * 4 + col
+                            MonthItem(
+                                month = month,
+                                isSelected = selectedYear == currentYear && month == currentMonth,
+                                onClick = { onMonthSelected(selectedYear, month) }
+                            )
+                        }
+                    }
+                    if (row < 2) Spacer(modifier = Modifier.height(8.dp))
+                }
+            }
+        },
+        confirmButton = {
+            androidx.compose.material3.TextButton(onClick = onDismiss) {
+                Text("取消")
+            }
+        }
+    )
+}
+
+@Composable
+fun MonthItem(
+    month: Int,
+    isSelected: Boolean,
+    onClick: () -> Unit
+) {
+    Box(
+        modifier = Modifier
+            .size(60.dp)
+            .background(
+                if (isSelected) YellowPrimary else Color.Transparent,
+                RoundedCornerShape(8.dp)
+            )
+            .padding(4.dp)
+            .clickable(onClick = onClick),
+        contentAlignment = Alignment.Center
+    ) {
+        Text(
+            text = "${month}月",
+            fontSize = 14.sp,
+            fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,
+            color = if (isSelected) Color.Black else Color.Gray
+        )
     }
 }

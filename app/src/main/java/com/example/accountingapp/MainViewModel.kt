@@ -9,6 +9,7 @@ import com.example.accountingapp.data.Category
 import com.example.accountingapp.data.CategoryRanking
 import com.example.accountingapp.data.Transaction
 import com.example.accountingapp.data.TransactionType
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -65,8 +66,38 @@ class MainViewModel(private val repository: AccountingRepository) : ViewModel() 
         repository.insert(transaction)
     }
 
+    fun updateTransaction(transaction: Transaction) = viewModelScope.launch {
+        repository.update(transaction)
+    }
+
     fun deleteTransaction(transaction: Transaction) = viewModelScope.launch {
         repository.delete(transaction)
+    }
+
+    fun getTransaction(id: Int): Flow<Transaction?> = repository.getTransaction(id)
+    // 添加选择月份的状态
+    private val _selectedYear = MutableStateFlow(Calendar.getInstance().get(Calendar.YEAR))
+    private val _selectedMonth = MutableStateFlow(Calendar.getInstance().get(Calendar.MONTH) + 1)
+
+    fun setSelectedMonth(year: Int, month: Int) {
+        _selectedYear.value = year
+        _selectedMonth.value = month
+
+        // 更新月份的起止时间
+        val calendar = Calendar.getInstance()
+
+        // 设置月初
+        calendar.set(year, month - 1, 1, 0, 0, 0)
+        calendar.set(Calendar.MILLISECOND, 0)
+        _currentMonthStart.value = calendar.timeInMillis
+
+        // 设置月末
+        calendar.set(Calendar.DAY_OF_MONTH, calendar.getActualMaximum(Calendar.DAY_OF_MONTH))
+        calendar.set(Calendar.HOUR_OF_DAY, 23)
+        calendar.set(Calendar.MINUTE, 59)
+        calendar.set(Calendar.SECOND, 59)
+        calendar.set(Calendar.MILLISECOND, 999)
+        _currentMonthEnd.value = calendar.timeInMillis
     }
 
     // --- Statistics Logic ---

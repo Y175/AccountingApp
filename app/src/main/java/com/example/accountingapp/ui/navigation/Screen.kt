@@ -13,4 +13,8 @@ sealed class Screen(val route: String, val title: String, val icon: ImageVector)
     object CategoryDetails : Screen("category_details/{categoryName}", "分类明细", Icons.Default.PieChart) {
         fun createRoute(categoryName: String) = "category_details/$categoryName"
     }
+
+    object TransactionDetail : Screen("transaction_detail/{transactionId}", "账单详情", Icons.Default.PieChart) {
+        fun createRoute(transactionId: Int) = "transaction_detail/$transactionId"
+    }
 }
