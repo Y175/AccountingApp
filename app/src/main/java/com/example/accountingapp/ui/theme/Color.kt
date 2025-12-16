@@ -2,15 +2,16 @@ package com.example.accountingapp.ui.theme
 
 import androidx.compose.ui.graphics.Color
 
-val YellowPrimary = Color(0xFFFFD700) // Gold/Yellow
-val YellowVariant = Color(0xFFFFE55C)
-val BlackPrimary = Color(0xFF000000)
-val GrayText = Color(0xFF808080)
-val GrayBackground = Color(0xFFF5F5F5)
+val YellowPrimary = Color(0xFFFFC107) // Warm Yellow
+val YellowVariant = Color(0xFFFFD54F) // Light Warm Yellow
+val YellowBackground = Color(0xFFFFFDF5) // Cream/Off-white
+val BlackPrimary = Color(0xFF212121) // Soft Black
+val GrayText = Color(0xFF757575) // Slate Gray
+val GrayBackground = Color(0xFFF5F5F5) // Keep as secondary
 val White = Color(0xFFFFFFFF)
 
-val IncomeGreen = Color(0xFF4CAF50)
-val ExpenseRed = Color(0xFFF44336)
+val IncomeGreen = Color(0xFF66BB6A) // Soft Green
+val ExpenseRed = Color(0xFFEF5350) // Soft Red
 
 val Purple80 = Color(0xFFD0BCFF)
 val PurpleGrey80 = Color(0xFFCCC2DC)

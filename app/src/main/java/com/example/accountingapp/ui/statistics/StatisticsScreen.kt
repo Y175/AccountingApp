@@ -51,11 +51,13 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.rememberDateRangePickerState
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import com.example.accountingapp.ui.components.AnimatedItem
 import com.example.accountingapp.ui.components.PieChart
+import com.example.accountingapp.util.CategoryIcons
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Date
@@ -74,19 +76,23 @@ fun StatisticsScreen(
     val totalAmount by viewModel.statsTotal.collectAsState()
     val averageAmount by viewModel.statsAverage.collectAsState()
     val rankingData by viewModel.statsRanking.collectAsState()
-    
+
     // Custom Date Range
     val customStartDate by viewModel.customStartDate.collectAsState()
     val customEndDate by viewModel.customEndDate.collectAsState()
 
-    // For date display (Simplified)
+    // For date display
     val anchorDate by viewModel.statsAnchorDate.collectAsState()
-    val year = anchorDate.get(Calendar.YEAR)
-    val week = anchorDate.get(Calendar.WEEK_OF_YEAR)
 
     // Local State
     var showDatePicker by remember { mutableStateOf(false) }
     var isLineChart by remember { mutableStateOf(true) }
+    var selectedOffset by remember { mutableStateOf(0) }
+
+    LaunchedEffect(selectedTimeRange) {
+        selectedOffset = 0
+        viewModel.setStatsAnchorDate(Calendar.getInstance())
+    }
 
     if (showDatePicker) {
         val datePickerState = rememberDateRangePickerState(
@@ -156,7 +162,7 @@ fun StatisticsScreen(
             .fillMaxSize()
             .background(YellowPrimary)
     ) {
-        // Header
+        // Fixed Header - 固定在顶部
         Row(
             modifier = Modifier
                 .fillMaxWidth()
@@ -164,11 +170,14 @@ fun StatisticsScreen(
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            
             Row {
-                TypeTab("支出", selectedType == TransactionType.EXPENSE) { viewModel.setStatsType(TransactionType.EXPENSE) }
+                TypeTab("支出", selectedType == TransactionType.EXPENSE) {
+                    viewModel.setStatsType(TransactionType.EXPENSE)
+                }
                 Spacer(modifier = Modifier.width(16.dp))
-                TypeTab("收入", selectedType == TransactionType.INCOME) { viewModel.setStatsType(TransactionType.INCOME) }
+                TypeTab("收入", selectedType == TransactionType.INCOME) {
+                    viewModel.setStatsType(TransactionType.INCOME)
+                }
             }
 
             // Chart Type Toggle
@@ -181,179 +190,345 @@ fun StatisticsScreen(
             }
         }
 
-        // Main Content
-        Column(
+        // Scrollable Content - 可滚动内容
+        LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
                 .background(Color.White, RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp))
-                .padding(16.dp)
         ) {
             // Time Range Selector
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .background(Color(0xFFF5F5F5), RoundedCornerShape(8.dp))
-                    .padding(4.dp),
-                horizontalArrangement = Arrangement.SpaceEvenly
-            ) {
-                val ranges = listOf(
-                    "周" to TimeRange.WEEK, 
-                    "月" to TimeRange.MONTH, 
-                    "年" to TimeRange.YEAR,
-                    "自定义" to TimeRange.CUSTOM
-                )
-                ranges.forEach { (label, range) ->
-                    Box(
-                        modifier = Modifier
-                            .weight(1f)
-                            .background(
-                                if (selectedTimeRange == range) YellowPrimary else Color.Transparent,
-                                RoundedCornerShape(6.dp)
-                            )
-                            .clickable { 
-                                if (range == TimeRange.CUSTOM) {
-                                    showDatePicker = true
-                                } else {
-                                    viewModel.setStatsTimeRange(range) 
+            item {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp)
+                        .padding(top = 16.dp)
+                        .background(Color(0xFFF5F5F5), RoundedCornerShape(8.dp))
+                        .padding(4.dp),
+                    horizontalArrangement = Arrangement.SpaceEvenly
+                ) {
+                    val ranges = listOf(
+                        "周" to TimeRange.WEEK,
+                        "月" to TimeRange.MONTH,
+                        "年" to TimeRange.YEAR,
+                        "自定义" to TimeRange.CUSTOM
+                    )
+                    ranges.forEach { (label, range) ->
+                        Box(
+                            modifier = Modifier
+                                .weight(1f)
+                                .background(
+                                    if (selectedTimeRange == range) YellowPrimary else Color.Transparent,
+                                    RoundedCornerShape(6.dp)
+                                )
+                                .clickable {
+                                    if (range == TimeRange.CUSTOM) {
+                                        showDatePicker = true
+                                    } else {
+                                        viewModel.setStatsTimeRange(range)
+                                        selectedOffset = 0
+                                    }
                                 }
-                            }
-                            .padding(vertical = 8.dp),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Text(
-                            text = label,
-                            fontWeight = if (selectedTimeRange == range) FontWeight.Bold else FontWeight.Normal,
-                            style = MaterialTheme.typography.labelMedium
-                        )
+                                .padding(vertical = 8.dp),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Text(
+                                text = label,
+                                fontWeight = if (selectedTimeRange == range) FontWeight.Bold else FontWeight.Normal,
+                                style = MaterialTheme.typography.labelMedium
+                            )
+                        }
                     }
                 }
             }
 
-            Spacer(modifier = Modifier.height(16.dp))
+            item { Spacer(modifier = Modifier.height(16.dp)) }
 
             // Date Display
-            if (selectedTimeRange == TimeRange.CUSTOM) {
-                val dateFormat = SimpleDateFormat("yyyy/MM/dd", Locale.getDefault())
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.Center,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Icon(Icons.Default.DateRange, contentDescription = null, modifier = Modifier.size(16.dp), tint = Color.Gray)
-                    Spacer(modifier = Modifier.width(4.dp))
-                    Text(
-                        "${dateFormat.format(Date(customStartDate.timeInMillis))} - ${dateFormat.format(Date(customEndDate.timeInMillis))}",
-                        style = MaterialTheme.typography.bodyMedium,
-                        fontWeight = FontWeight.Bold
-                    )
-                }
-            } else {
-                // Week/Month/Year Selector (Simplified Placeholder)
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween
-                ) {
-                    Text("$year\n${week-3}周", color = Color.Gray, style = MaterialTheme.typography.labelSmall)
-                    Text("$year\n${week-2}周", color = Color.Gray, style = MaterialTheme.typography.labelSmall)
-                    Text("$year\n${week-1}周", color = Color.Gray, style = MaterialTheme.typography.labelSmall)
-                    Box(
+            item {
+                if (selectedTimeRange == TimeRange.CUSTOM) {
+                    val dateFormat = SimpleDateFormat("yyyy/MM/dd", Locale.getDefault())
+                    Row(
                         modifier = Modifier
-                            .background(YellowPrimary, RoundedCornerShape(8.dp))
-                            .padding(horizontal = 8.dp, vertical = 4.dp)
+                            .fillMaxWidth()
+                            .padding(horizontal = 16.dp),
+                        horizontalArrangement = Arrangement.Center,
+                        verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Text("$year\n${week}周", fontWeight = FontWeight.Bold, style = MaterialTheme.typography.labelSmall)
-                    }
-                }
-            }
-
-            Spacer(modifier = Modifier.height(24.dp))
-
-            // Stats Summary
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .background(Color(0xFFF5F5F5), RoundedCornerShape(12.dp))
-                    .padding(16.dp),
-                horizontalArrangement = Arrangement.SpaceAround
-            ) {
-                Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    Text(if (selectedType == TransactionType.EXPENSE) "总支出" else "总收入", color = Color.Gray, style = MaterialTheme.typography.labelSmall)
-                    Text("¥${String.format("%.2f", totalAmount)}", fontWeight = FontWeight.Bold, style = MaterialTheme.typography.titleMedium)
-                }
-                Box(modifier = Modifier.width(1.dp).height(40.dp).background(Color.LightGray))
-                Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    Text("平均值/天", color = Color.Gray, style = MaterialTheme.typography.labelSmall)
-                    Text("¥${String.format("%.2f", averageAmount)}", fontWeight = FontWeight.Bold, style = MaterialTheme.typography.titleMedium)
-                }
-            }
-
-            Spacer(modifier = Modifier.height(24.dp))
-
-            // Charts
-            Box(modifier = Modifier.height(200.dp).fillMaxWidth(), contentAlignment = Alignment.Center) {
-                if (isLineChart) {
-                    Column {
-                        LineChart(dataPoints = chartData, modifier = Modifier.weight(1f).fillMaxWidth())
-                        // X Axis Labels (Simplified)
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.SpaceBetween
-                        ) {
-                            val labels = if (selectedTimeRange == TimeRange.WEEK) {
-                                listOf("Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun")
-                            } else {
-                                listOf("Start", "...", "End")
-                            }
-                            labels.forEach {
-                                Text(it, style = MaterialTheme.typography.labelSmall, color = Color.Gray, fontSize = 10.sp)
-                            }
-                        }
+                        Icon(
+                            Icons.Default.DateRange,
+                            contentDescription = null,
+                            modifier = Modifier.size(16.dp),
+                            tint = Color.Gray
+                        )
+                        Spacer(modifier = Modifier.width(4.dp))
+                        Text(
+                            "${dateFormat.format(Date(customStartDate.timeInMillis))} - ${
+                                dateFormat.format(Date(customEndDate.timeInMillis))
+                            }",
+                            style = MaterialTheme.typography.bodyMedium,
+                            fontWeight = FontWeight.Bold
+                        )
                     }
                 } else {
-                    androidx.compose.animation.AnimatedVisibility(
-                        visible = true,
-                        enter = androidx.compose.animation.scaleIn() + androidx.compose.animation.fadeIn()
+                    // Week/Month/Year Selector
+                    val currentCalendar = Calendar.getInstance()
+                    val currentYear = currentCalendar.get(Calendar.YEAR)
+                    val currentWeek = currentCalendar.get(Calendar.WEEK_OF_YEAR)
+                    val currentMonth = currentCalendar.get(Calendar.MONTH) + 1
+
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 16.dp),
+                        horizontalArrangement = Arrangement.SpaceBetween
                     ) {
-                        if (pieChartData.isNotEmpty()) {
-                            val colors = listOf(
-                                Color(0xFFFFC107), Color(0xFFFF5722), Color(0xFF4CAF50), 
-                                Color(0xFF2196F3), Color(0xFF9C27B0), Color(0xFF607D8B)
-                            )
-                            val coloredData = pieChartData.mapIndexed { index, item ->
-                                item.copy(color = colors[index % colors.size])
+                        when (selectedTimeRange) {
+                            TimeRange.WEEK -> {
+                                for (offset in -3..0) {
+                                    val displayWeek = currentWeek + offset
+                                    val displayYear = if (displayWeek <= 0) currentYear - 1 else currentYear
+                                    val adjustedWeek = if (displayWeek <= 0) 52 + displayWeek else displayWeek
+
+                                    Box(
+                                        modifier = Modifier
+                                            .then(
+                                                if (offset == selectedOffset) {
+                                                    Modifier.background(YellowPrimary, RoundedCornerShape(8.dp))
+                                                } else {
+                                                    Modifier
+                                                }
+                                            )
+                                            .clickable {
+                                                selectedOffset = offset
+                                                viewModel.navigateToWeek(offset)
+                                            }
+                                            .padding(horizontal = 8.dp, vertical = 4.dp)
+                                    ) {
+                                        Text(
+                                            "$displayYear\n第${adjustedWeek}周",
+                                            fontWeight = if (selectedOffset == offset) FontWeight.Bold else FontWeight.Normal,
+                                            color = if (selectedOffset == offset) Color.Black else Color.Gray,
+                                            style = MaterialTheme.typography.labelSmall,
+                                            textAlign = androidx.compose.ui.text.style.TextAlign.Center
+                                        )
+                                    }
+                                }
                             }
-                            PieChart(data = coloredData, modifier = Modifier.size(180.dp))
-                        } else {
-                            Text("暂无数据", color = Color.Gray)
+
+                            TimeRange.MONTH -> {
+                                for (offset in -3..0) {
+                                    val displayMonth = currentMonth + offset
+                                    val displayYear = if (displayMonth <= 0) currentYear - 1 else currentYear
+                                    val adjustedMonth = if (displayMonth <= 0) 12 + displayMonth else displayMonth
+
+                                    Box(
+                                        modifier = Modifier
+                                            .then(
+                                                if (offset == selectedOffset) {
+                                                    Modifier.background(YellowPrimary, RoundedCornerShape(8.dp))
+                                                } else {
+                                                    Modifier
+                                                }
+                                            )
+                                            .clickable {
+                                                selectedOffset = offset
+                                                viewModel.navigateToMonth(offset)
+                                            }
+                                            .padding(horizontal = 8.dp, vertical = 4.dp)
+                                    ) {
+                                        Text(
+                                            "$displayYear\n${adjustedMonth}月",
+                                            fontWeight = if (selectedOffset == offset) FontWeight.Bold else FontWeight.Normal,
+                                            color = if (selectedOffset == offset) Color.Black else Color.Gray,
+                                            style = MaterialTheme.typography.labelSmall,
+                                            textAlign = androidx.compose.ui.text.style.TextAlign.Center
+                                        )
+                                    }
+                                }
+                            }
+
+                            TimeRange.YEAR -> {
+                                for (offset in -3..0) {
+                                    val displayYear = currentYear + offset
+
+                                    Box(
+                                        modifier = Modifier
+                                            .then(
+                                                if (offset == selectedOffset) {
+                                                    Modifier.background(YellowPrimary, RoundedCornerShape(8.dp))
+                                                } else {
+                                                    Modifier
+                                                }
+                                            )
+                                            .clickable {
+                                                selectedOffset = offset
+                                                viewModel.navigateToYear(offset)
+                                            }
+                                            .padding(horizontal = 8.dp, vertical = 4.dp)
+                                    ) {
+                                        Text(
+                                            "${displayYear}年",
+                                            fontWeight = if (selectedOffset == offset) FontWeight.Bold else FontWeight.Normal,
+                                            color = if (selectedOffset == offset) Color.Black else Color.Gray,
+                                            style = MaterialTheme.typography.labelSmall,
+                                            textAlign = androidx.compose.ui.text.style.TextAlign.Center
+                                        )
+                                    }
+                                }
+                            }
+
+                            else -> {}
                         }
                     }
                 }
             }
 
-            Spacer(modifier = Modifier.height(24.dp))
+            item { Spacer(modifier = Modifier.height(24.dp)) }
 
-            Text(if (selectedType == TransactionType.EXPENSE) "支出排行" else "收入排行", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
-            
-            Spacer(modifier = Modifier.height(8.dp))
-
-            LazyColumn {
-                items(rankingData) { item ->
-                    AnimatedItem {
-                        RankingListItem(
-                            item = item,
-                            onClick = { onCategoryClick(item.categoryName) }
+            // Stats Summary
+            item {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp)
+                        .background(Color(0xFFF5F5F5), RoundedCornerShape(12.dp))
+                        .padding(16.dp),
+                    horizontalArrangement = Arrangement.SpaceAround
+                ) {
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        Text(
+                            if (selectedType == TransactionType.EXPENSE) "总支出" else "总收入",
+                            color = Color.Gray,
+                            style = MaterialTheme.typography.labelSmall
+                        )
+                        Text(
+                            "¥${String.format("%.2f", totalAmount)}",
+                            fontWeight = FontWeight.Bold,
+                            style = MaterialTheme.typography.titleMedium
+                        )
+                    }
+                    Box(
+                        modifier = Modifier
+                            .width(1.dp)
+                            .height(40.dp)
+                            .background(Color.LightGray)
+                    )
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        Text(
+                            "平均值/天",
+                            color = Color.Gray,
+                            style = MaterialTheme.typography.labelSmall
+                        )
+                        Text(
+                            "¥${String.format("%.2f", averageAmount)}",
+                            fontWeight = FontWeight.Bold,
+                            style = MaterialTheme.typography.titleMedium
                         )
                     }
                 }
             }
+
+            item { Spacer(modifier = Modifier.height(24.dp)) }
+
+            // Charts - 增大图表高度
+            item {
+                Box(
+                    modifier = Modifier
+                        .height(280.dp) // 增加高度
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    if (isLineChart) {
+                        Column {
+                            LineChart(
+                                dataPoints = chartData,
+                                modifier = Modifier
+                                    .weight(1f)
+                                    .fillMaxWidth()
+                            )
+                            // X Axis Labels
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.SpaceBetween
+                            ) {
+                                val labels = if (selectedTimeRange == TimeRange.WEEK) {
+                                    listOf("Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun")
+                                } else {
+                                    listOf("Start", "...", "End")
+                                }
+                                labels.forEach {
+                                    Text(
+                                        it,
+                                        style = MaterialTheme.typography.labelSmall,
+                                        color = Color.Gray,
+                                        fontSize = 10.sp
+                                    )
+                                }
+                            }
+                        }
+                    } else {
+                        androidx.compose.animation.AnimatedVisibility(
+                            visible = true,
+                            enter = androidx.compose.animation.scaleIn() + androidx.compose.animation.fadeIn()
+                        ) {
+                            if (pieChartData.isNotEmpty()) {
+                                val colors = listOf(
+                                    Color(0xFFFFC107), Color(0xFFFF5722), Color(0xFF4CAF50),
+                                    Color(0xFF2196F3), Color(0xFF9C27B0), Color(0xFF607D8B)
+                                )
+                                val coloredData = pieChartData.mapIndexed { index, item ->
+                                    item.copy(color = colors[index % colors.size])
+                                }
+                                PieChart(data = coloredData, modifier = Modifier.size(240.dp)) // 增大饼图
+                            } else {
+                                Text("暂无数据", color = Color.Gray)
+                            }
+                        }
+                    }
+                }
+            }
+
+            item { Spacer(modifier = Modifier.height(24.dp)) }
+
+            // Ranking Title
+            item {
+                Text(
+                    if (selectedType == TransactionType.EXPENSE) "支出排行" else "收入排行",
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold,
+                    modifier = Modifier.padding(horizontal = 16.dp)
+                )
+            }
+
+            item { Spacer(modifier = Modifier.height(8.dp)) }
+
+            // Ranking List - 使用 items 直接添加
+            items(rankingData) { item ->
+                AnimatedItem {
+                    RankingListItem(
+                        item = item,
+                        onClick = { onCategoryClick(item.categoryName) },
+                        modifier = Modifier.padding(horizontal = 16.dp)
+                    )
+                }
+            }
+
+            // 底部留白
+            item { Spacer(modifier = Modifier.height(16.dp)) }
         }
     }
 }
 
 @Composable
-fun RankingListItem(item: CategoryRanking, onClick: () -> Unit) {
+fun RankingListItem(
+    item: CategoryRanking,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
     Row(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxWidth()
             .clickable { onClick() }
             .padding(vertical = 8.dp),
@@ -361,16 +536,20 @@ fun RankingListItem(item: CategoryRanking, onClick: () -> Unit) {
     ) {
         Box(
             modifier = Modifier
-                .size(32.dp)
+                .size(40.dp)
                 .background(Color(0xFFF5F5F5), CircleShape),
             contentAlignment = Alignment.Center
         ) {
-            // Placeholder icon
-            Icon(Icons.Default.Category, contentDescription = null, modifier = Modifier.size(16.dp))
+            Icon(
+                imageVector = CategoryIcons.getIcon(item.iconName),
+                contentDescription = item.categoryName,
+                modifier = Modifier.size(24.dp),
+                tint = Color.Black
+            )
         }
-        
+
         Spacer(modifier = Modifier.width(12.dp))
-        
+
         Column(modifier = Modifier.weight(1f)) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -383,12 +562,19 @@ fun RankingListItem(item: CategoryRanking, onClick: () -> Unit) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 LinearProgressIndicator(
                     progress = item.percentage,
-                    modifier = Modifier.weight(1f).height(6.dp).clip(RoundedCornerShape(3.dp)),
+                    modifier = Modifier
+                        .weight(1f)
+                        .height(6.dp)
+                        .clip(RoundedCornerShape(3.dp)),
                     color = YellowPrimary,
                     trackColor = Color(0xFFEEEEEE)
                 )
                 Spacer(modifier = Modifier.width(8.dp))
-                Text("${(item.percentage * 100).toInt()}%", style = MaterialTheme.typography.labelSmall, color = Color.Gray)
+                Text(
+                    "${(item.percentage * 100).toInt()}%",
+                    style = MaterialTheme.typography.labelSmall,
+                    color = Color.Gray
+                )
             }
         }
     }

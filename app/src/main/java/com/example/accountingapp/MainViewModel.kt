@@ -24,31 +24,35 @@ import kotlinx.coroutines.flow.map
 class MainViewModel(private val repository: AccountingRepository) : ViewModel() {
 
     // Current selected month (start and end timestamps)
-    private val _currentMonthStart = MutableStateFlow(getStartOfMonth())
-    private val _currentMonthEnd = MutableStateFlow(getEndOfMonth())
+    // Date Filter State
+    private val _filterType = MutableStateFlow(DateFilterType.MONTH)
+    val filterType: StateFlow<DateFilterType> = _filterType
 
-    // Transactions for the current month
-    val currentMonthTransactions: StateFlow<List<Transaction>> = combine(
-        _currentMonthStart,
-        _currentMonthEnd
+    private val _currentDateRangeStart = MutableStateFlow(getStartOfMonth(Calendar.getInstance()))
+    private val _currentDateRangeEnd = MutableStateFlow(getEndOfMonth(Calendar.getInstance()))
+
+    // Transactions for the current filtered date range
+    val currentTransactions: StateFlow<List<Transaction>> = combine(
+        _currentDateRangeStart,
+        _currentDateRangeEnd
     ) { start, end ->
         repository.getTransactionsByDateRange(start, end)
     }.flatMapLatest { it }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
-    // Financial Overview
-    val currentMonthIncome: StateFlow<Double> = combine(
-        _currentMonthStart,
-        _currentMonthEnd
+    // Financial Overview (Income/Expense)
+    val currentIncome: StateFlow<Double> = combine(
+        _currentDateRangeStart,
+        _currentDateRangeEnd
     ) { start, end ->
         repository.getIncomeSum(start, end)
     }.flatMapLatest { it }
         .map { it ?: 0.0 }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), 0.0)
 
-    val currentMonthExpense: StateFlow<Double> = combine(
-        _currentMonthStart,
-        _currentMonthEnd
+    val currentExpense: StateFlow<Double> = combine(
+        _currentDateRangeStart,
+        _currentDateRangeEnd
     ) { start, end ->
         repository.getExpenseSum(start, end)
     }.flatMapLatest { it }
@@ -75,29 +79,87 @@ class MainViewModel(private val repository: AccountingRepository) : ViewModel() 
     }
 
     fun getTransaction(id: Int): Flow<Transaction?> = repository.getTransaction(id)
-    // 添加选择月份的状态
-    private val _selectedYear = MutableStateFlow(Calendar.getInstance().get(Calendar.YEAR))
-    private val _selectedMonth = MutableStateFlow(Calendar.getInstance().get(Calendar.MONTH) + 1)
 
-    fun setSelectedMonth(year: Int, month: Int) {
-        _selectedYear.value = year
-        _selectedMonth.value = month
+    // Current Display String (e.g., "2024年\n5月" or "2024年\n第12周")
+    private val _dateDisplay = MutableStateFlow("")
+    val dateDisplay: StateFlow<String> = _dateDisplay
 
-        // 更新月份的起止时间
-        val calendar = Calendar.getInstance()
+    init {
+        updateDateDisplay(Calendar.getInstance(), DateFilterType.MONTH)
+    }
 
-        // 设置月初
-        calendar.set(year, month - 1, 1, 0, 0, 0)
-        calendar.set(Calendar.MILLISECOND, 0)
-        _currentMonthStart.value = calendar.timeInMillis
+    fun setDateFilter(type: DateFilterType, calendar: Calendar) {
+        _filterType.value = type
+        updateDateDisplay(calendar, type)
 
-        // 设置月末
-        calendar.set(Calendar.DAY_OF_MONTH, calendar.getActualMaximum(Calendar.DAY_OF_MONTH))
-        calendar.set(Calendar.HOUR_OF_DAY, 23)
-        calendar.set(Calendar.MINUTE, 59)
-        calendar.set(Calendar.SECOND, 59)
-        calendar.set(Calendar.MILLISECOND, 999)
-        _currentMonthEnd.value = calendar.timeInMillis
+        val newStart: Long
+        val newEnd: Long
+
+        when (type) {
+            DateFilterType.MONTH -> {
+                newStart = getStartOfMonth(calendar)
+                newEnd = getEndOfMonth(calendar)
+            }
+            DateFilterType.WEEK -> {
+                newStart = getStartOfWeek(calendar)
+                newEnd = getEndOfWeek(calendar)
+            }
+        }
+        _currentDateRangeStart.value = newStart
+        _currentDateRangeEnd.value = newEnd
+    }
+
+    private fun updateDateDisplay(calendar: Calendar, type: DateFilterType) {
+        val year = calendar.get(Calendar.YEAR)
+        if (type == DateFilterType.MONTH) {
+            val month = calendar.get(Calendar.MONTH) + 1
+            _dateDisplay.value = "${year}年\n${month}月"
+        } else {
+            val week = calendar.get(Calendar.WEEK_OF_YEAR)
+            _dateDisplay.value = "${year}年\n第${week}周"
+        }
+    }
+    
+    private fun getStartOfWeek(calendar: Calendar): Long {
+        val cal = calendar.clone() as Calendar
+        cal.firstDayOfWeek = Calendar.MONDAY
+        cal.set(Calendar.DAY_OF_WEEK, Calendar.MONDAY)
+        cal.set(Calendar.HOUR_OF_DAY, 0)
+        cal.set(Calendar.MINUTE, 0)
+        cal.set(Calendar.SECOND, 0)
+        cal.set(Calendar.MILLISECOND, 0)
+        return cal.timeInMillis
+    }
+
+    private fun getEndOfWeek(calendar: Calendar): Long {
+        val cal = calendar.clone() as Calendar
+        cal.firstDayOfWeek = Calendar.MONDAY
+        cal.set(Calendar.DAY_OF_WEEK, Calendar.SUNDAY)
+        cal.set(Calendar.HOUR_OF_DAY, 23)
+        cal.set(Calendar.MINUTE, 59)
+        cal.set(Calendar.SECOND, 59)
+        cal.set(Calendar.MILLISECOND, 999)
+        return cal.timeInMillis
+    }
+    
+    private fun getStartOfMonth(calendar: Calendar): Long {
+        val cal = calendar.clone() as Calendar
+        cal.set(Calendar.DAY_OF_MONTH, 1)
+        cal.set(Calendar.HOUR_OF_DAY, 0)
+        cal.set(Calendar.MINUTE, 0)
+        cal.set(Calendar.SECOND, 0)
+        cal.set(Calendar.MILLISECOND, 0)
+        return cal.timeInMillis
+    }
+
+    private fun getEndOfMonth(calendar: Calendar): Long {
+        val cal = calendar.clone() as Calendar
+        cal.set(Calendar.DAY_OF_MONTH, cal.getActualMaximum(Calendar.DAY_OF_MONTH))
+        cal.set(Calendar.HOUR_OF_DAY, 23)
+        cal.set(Calendar.MINUTE, 59)
+        cal.set(Calendar.SECOND, 59)
+        cal.set(Calendar.MILLISECOND, 999)
+        return cal.timeInMillis
     }
 
     // --- Statistics Logic ---
@@ -309,30 +371,39 @@ class MainViewModel(private val repository: AccountingRepository) : ViewModel() 
         }
         return points
     }
-
-    private fun getStartOfMonth(): Long {
-        val calendar = Calendar.getInstance()
-        calendar.set(Calendar.DAY_OF_MONTH, 1)
-        calendar.set(Calendar.HOUR_OF_DAY, 0)
-        calendar.set(Calendar.MINUTE, 0)
-        calendar.set(Calendar.SECOND, 0)
-        calendar.set(Calendar.MILLISECOND, 0)
-        return calendar.timeInMillis
+    // 在 MainViewModel 中添加
+    fun navigateToWeek(offset: Int) {
+        val newAnchor = Calendar.getInstance().apply {
+            // 👇 改为从当前日期开始计算，而不是从 statsAnchorDate
+            add(Calendar.WEEK_OF_YEAR, offset)
+        }
+        _statsAnchorDate.value = newAnchor
     }
 
-    private fun getEndOfMonth(): Long {
-        val calendar = Calendar.getInstance()
-        calendar.set(Calendar.DAY_OF_MONTH, calendar.getActualMaximum(Calendar.DAY_OF_MONTH))
-        calendar.set(Calendar.HOUR_OF_DAY, 23)
-        calendar.set(Calendar.MINUTE, 59)
-        calendar.set(Calendar.SECOND, 59)
-        calendar.set(Calendar.MILLISECOND, 999)
-        return calendar.timeInMillis
+    fun navigateToMonth(offset: Int) {
+        val newAnchor = Calendar.getInstance().apply {
+            // 👇 改为从当前日期开始计算
+            add(Calendar.MONTH, offset)
+        }
+        _statsAnchorDate.value = newAnchor
     }
+
+    fun navigateToYear(offset: Int) {
+        val newAnchor = Calendar.getInstance().apply {
+            // 👇 改为从当前日期开始计算
+            add(Calendar.YEAR, offset)
+        }
+        _statsAnchorDate.value = newAnchor
+    }
+
 }
 
 enum class TimeRange {
     WEEK, MONTH, YEAR, CUSTOM
+}
+
+enum class DateFilterType {
+    MONTH, WEEK
 }
 
 data class PieChartData(

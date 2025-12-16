@@ -70,21 +70,22 @@ fun PieChart(
                     style = Stroke(width = strokeWidth)
                 )
 
-                // 绘制标签
+
+// 绘制标签
                 if (showLabels && animatedProgress.value > 0.5f) {
                     val angle = Math.toRadians((startAngle + sweepAngle / 2).toDouble())
                     val labelRadius = radius + strokeWidth / 2
 
-                    // 标签位置
+                    // 标签起点位置
                     val labelX = center.x + (labelRadius * cos(angle)).toFloat()
                     val labelY = center.y + (labelRadius * sin(angle)).toFloat()
 
-                    // 外部标签位置（延伸）
-                    val extendedRadius = labelRadius + 40.dp.toPx()
+                    // 缩短指示线 - 只延伸20dp
+                    val extendedRadius = labelRadius + 20.dp.toPx()
                     val extendedX = center.x + (extendedRadius * cos(angle)).toFloat()
                     val extendedY = center.y + (extendedRadius * sin(angle)).toFloat()
 
-                    // 绘制指示线
+                    // 绘制指示线（缩短版）
                     drawLine(
                         color = item.color,
                         start = Offset(labelX, labelY),
@@ -92,18 +93,18 @@ fun PieChart(
                         strokeWidth = 2.dp.toPx()
                     )
 
-                    // 绘制文本
+                    // 绘制文本 - 显示分类名称、金额和百分比
                     val percentage = if (showPercentage) {
-                        " (${(item.value / total * 100).toInt()}%)"
+                        " ${(item.value / total * 100).toInt()}%"
                     } else {
                         ""
                     }
 
-                    val text = "${item.name}$percentage"
+                    val text = "${item.name}\n¥${String.format("%.2f", item.value)}$percentage"
                     val textLayoutResult = textMeasurer.measure(
                         text = text,
                         style = TextStyle(
-                            fontSize = 12.sp,
+                            fontSize = 11.sp,
                             color = Color.Black
                         )
                     )
@@ -120,7 +121,6 @@ fun PieChart(
                         topLeft = textOffset
                     )
                 }
-
                 startAngle += sweepAngle
             }
         }

@@ -23,12 +23,12 @@ private val DarkColorScheme = darkColorScheme(
 
 private val LightColorScheme = lightColorScheme(
     primary = YellowPrimary,
-    secondary = PurpleGrey40,
-    tertiary = Pink40,
-    background = GrayBackground,
+    secondary = YellowVariant,
+    tertiary = BlackPrimary,
+    background = YellowBackground,
     surface = White,
     onPrimary = BlackPrimary,
-    onSecondary = White,
+    onSecondary = BlackPrimary,
     onTertiary = White,
     onBackground = BlackPrimary,
     onSurface = BlackPrimary,

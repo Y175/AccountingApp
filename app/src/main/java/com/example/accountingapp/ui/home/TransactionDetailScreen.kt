@@ -19,6 +19,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.KeyboardArrowRight
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.DatePicker
@@ -58,6 +59,15 @@ import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
+import com.example.accountingapp.ui.theme.YellowBackground
+import com.example.accountingapp.ui.theme.BlackPrimary
+import com.example.accountingapp.ui.theme.White
+import com.example.accountingapp.ui.theme.GrayText
+import androidx.compose.foundation.layout.offset
+import androidx.compose.foundation.border
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.material3.HorizontalDivider
+import com.example.accountingapp.ui.bookkeeping.TypeTab
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -101,238 +111,260 @@ fun TransactionDetailScreen(
                 modifier = Modifier
                     .fillMaxWidth()
                     .background(YellowPrimary)
-                    .padding(16.dp),
+                    .padding(top = 16.dp, bottom = 16.dp, start = 16.dp, end = 16.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 IconButton(onClick = onBack) {
-                    Icon(Icons.Default.ArrowBack, contentDescription = "返回", tint = Color.Black)
+                    Icon(Icons.Default.ArrowBack, contentDescription = "返回", tint = BlackPrimary)
                 }
-                Spacer(modifier = Modifier.width(8.dp))
+                Spacer(modifier = Modifier.weight(1f))
                 Text(
                     text = "账单详情",
-                    style = MaterialTheme.typography.titleLarge,
-                    color = Color.Black
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold,
+                    color = BlackPrimary
                 )
                 Spacer(modifier = Modifier.weight(1f))
                 IconButton(onClick = { showDeleteDialog = true }) {
-                    Icon(Icons.Default.Delete, contentDescription = "删除", tint = Color.Black)
+                    Icon(Icons.Default.Delete, contentDescription = "删除", tint = BlackPrimary)
                 }
             }
-        }
+        },
+        containerColor = YellowBackground
     ) { padding ->
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(padding)
-                .background(Color.White)
+                .background(YellowBackground)
         ) {
-            // Top Icon + Category
+            // Top Icon + Category - Large and Centered
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(vertical = 32.dp),
+                    .background(
+                        brush = androidx.compose.ui.graphics.Brush.verticalGradient(
+                            colors = listOf(YellowPrimary, YellowBackground)
+                        )
+                    )
+                    .padding(bottom = 40.dp),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 Box(
                     modifier = Modifier
-                        .size(72.dp)
-                        .background(YellowPrimary.copy(alpha = 0.3f), CircleShape),
+                        .size(80.dp)
+                        .background(White, CircleShape)
+                        .padding(16.dp),
                     contentAlignment = Alignment.Center
                 ) {
                     Icon(
                         imageVector = CategoryIcons.getIcon(transaction!!.categoryIcon),
                         contentDescription = transaction!!.categoryName,
-                        modifier = Modifier.size(36.dp),
-                        tint = Color.Black
+                        modifier = Modifier.size(40.dp),
+                        tint = BlackPrimary
                     )
                 }
-                Spacer(modifier = Modifier.height(8.dp))
+                Spacer(modifier = Modifier.height(16.dp))
                 Text(
                     text = transaction!!.categoryName,
-                    style = MaterialTheme.typography.titleMedium
+                    style = MaterialTheme.typography.headlineSmall,
+                    fontWeight = FontWeight.Bold,
+                    color = BlackPrimary
                 )
             }
 
-            // Details List
-            DetailItem(
-                label = "类型",
-                value = if (transaction!!.type == TransactionType.INCOME) "收入" else "支出",
-                onClick = { showCategorySheet = true }
-            )
-            DetailItem(
-                label = "金额",
-                value = String.format("%.2f", transaction!!.amount),
-                onClick = {
-                    tempAmount = transaction!!.amount.toString()
-                    showAmountSheet = true
-                }
-            )
-            DetailItem(
-                label = "日期",
-                value = SimpleDateFormat("yyyy年MM月dd日", Locale.CHINA).format(Date(transaction!!.date)),
-                onClick = { showDateSheet = true }
-            )
-            DetailItem(
-                label = "备注",
-                value = transaction!!.note.ifEmpty { "无备注" },
-                onClick = {
-                    tempNote = transaction!!.note
-                    showNoteSheet = true
-                }
-            )
+            // Details List - Card Style
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 24.dp)
+                    .offset(y = (-20).dp) // Overlap with header
+                    .background(White, RoundedCornerShape(24.dp))
+                    .padding(vertical = 8.dp)
+            ) {
+                DetailItem(
+                    label = "类型",
+                    value = if (transaction!!.type == TransactionType.INCOME) "收入" else "支出",
+                    onClick = { showCategorySheet = true }
+                )
+                DetailItem(
+                    label = "金额",
+                    value = String.format("%.2f", transaction!!.amount),
+                    onClick = {
+                        tempAmount = transaction!!.amount.toString()
+                        showAmountSheet = true
+                    }
+                )
+                DetailItem(
+                    label = "日期",
+                    value = SimpleDateFormat(
+                        "yyyy年MM月dd日",
+                        Locale.CHINA
+                    ).format(Date(transaction!!.date)),
+                    onClick = { showDateSheet = true }
+                )
+                DetailItem(
+                    label = "备注",
+                    value = transaction!!.note.ifEmpty { "无备注" },
+                    onClick = {
+                        tempNote = transaction!!.note
+                        showNoteSheet = true
+                    }
+                )
+            }
         }
-    }
 
-    // --- Bottom Sheets ---
+        // --- Bottom Sheets ---
 
-    // 1. Category & Type Sheet
-    if (showCategorySheet) {
-        CategorySelectionSheet(
-            currentType = transaction!!.type,
-            currentCategoryId = transaction!!.categoryId,
-            viewModel = viewModel,
-            onDismiss = { showCategorySheet = false },
-            onCategorySelected = { category ->
-                scope.launch {
-                    viewModel.updateTransaction(
-                        transaction!!.copy(
-                            categoryId = category.id,
-                            categoryName = category.name,
-                            categoryIcon = category.iconName,
-                            type = category.type
+        // 1. Category & Type Sheet
+        if (showCategorySheet) {
+            CategorySelectionSheet(
+                currentType = transaction!!.type,
+                currentCategoryId = transaction!!.categoryId,
+                viewModel = viewModel,
+                onDismiss = { showCategorySheet = false },
+                onCategorySelected = { category ->
+                    scope.launch {
+                        viewModel.updateTransaction(
+                            transaction!!.copy(
+                                categoryId = category.id,
+                                categoryName = category.name,
+                                categoryIcon = category.iconName,
+                                type = category.type
+                            )
                         )
+                        showCategorySheet = false
+                    }
+                }
+            )
+        }
+
+        // 2. Amount Sheet
+        if (showAmountSheet) {
+            ModalBottomSheet(
+                onDismissRequest = { showAmountSheet = false },
+                sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+            ) {
+                Column(modifier = Modifier.padding(16.dp)) {
+                    Text("编辑金额", style = MaterialTheme.typography.titleMedium)
+                    Spacer(modifier = Modifier.height(16.dp))
+                    OutlinedTextField(
+                        value = tempAmount,
+                        onValueChange = { tempAmount = it },
+                        label = { Text("金额") },
+                        modifier = Modifier.fillMaxWidth(),
+                        singleLine = true
                     )
-                    showCategorySheet = false
-                }
-            }
-        )
-    }
-
-    // 2. Amount Sheet
-    if (showAmountSheet) {
-        ModalBottomSheet(
-            onDismissRequest = { showAmountSheet = false },
-            sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
-        ) {
-            Column(modifier = Modifier.padding(16.dp)) {
-                Text("编辑金额", style = MaterialTheme.typography.titleMedium)
-                Spacer(modifier = Modifier.height(16.dp))
-                OutlinedTextField(
-                    value = tempAmount,
-                    onValueChange = { tempAmount = it },
-                    label = { Text("金额") },
-                    modifier = Modifier.fillMaxWidth(),
-                    singleLine = true
-                )
-                Spacer(modifier = Modifier.height(16.dp))
-                Button(
-                    onClick = {
-                        val amount = tempAmount.toDoubleOrNull()
-                        if (amount != null && amount > 0) {
-                            scope.launch {
-                                viewModel.updateTransaction(transaction!!.copy(amount = amount))
-                                showAmountSheet = false
+                    Spacer(modifier = Modifier.height(16.dp))
+                    Button(
+                        onClick = {
+                            val amount = tempAmount.toDoubleOrNull()
+                            if (amount != null && amount > 0) {
+                                scope.launch {
+                                    viewModel.updateTransaction(transaction!!.copy(amount = amount))
+                                    showAmountSheet = false
+                                }
+                            } else {
+                                Toast.makeText(context, "请输入有效金额", Toast.LENGTH_SHORT).show()
                             }
-                        } else {
-                            Toast.makeText(context, "请输入有效金额", Toast.LENGTH_SHORT).show()
-                        }
-                    },
-                    modifier = Modifier.fillMaxWidth(),
-                    colors = ButtonDefaults.buttonColors(containerColor = YellowPrimary)
-                ) {
-                    Text("确定", color = Color.Black)
-                }
-                Spacer(modifier = Modifier.height(32.dp))
-            }
-        }
-    }
-
-    // 3. Date Sheet
-    if (showDateSheet) {
-        val datePickerState = rememberDatePickerState(
-            initialSelectedDateMillis = transaction!!.date
-        )
-        DatePickerDialog(
-            onDismissRequest = { showDateSheet = false },
-            confirmButton = {
-                TextButton(onClick = {
-                    datePickerState.selectedDateMillis?.let { newDate ->
-                        scope.launch {
-                            viewModel.updateTransaction(transaction!!.copy(date = newDate))
-                            showDateSheet = false
-                        }
+                        },
+                        modifier = Modifier.fillMaxWidth(),
+                        colors = ButtonDefaults.buttonColors(containerColor = YellowPrimary)
+                    ) {
+                        Text("确定", color = Color.Black)
                     }
-                }) {
-                    Text("确定")
-                }
-            },
-            dismissButton = {
-                TextButton(onClick = { showDateSheet = false }) {
-                    Text("取消")
+                    Spacer(modifier = Modifier.height(32.dp))
                 }
             }
-        ) {
-            DatePicker(state = datePickerState)
         }
-    }
 
-    // 4. Note Sheet
-    if (showNoteSheet) {
-        ModalBottomSheet(
-            onDismissRequest = { showNoteSheet = false },
-            sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
-        ) {
-            Column(modifier = Modifier.padding(16.dp)) {
-                Text("编辑备注", style = MaterialTheme.typography.titleMedium)
-                Spacer(modifier = Modifier.height(16.dp))
-                OutlinedTextField(
-                    value = tempNote,
-                    onValueChange = { tempNote = it },
-                    label = { Text("备注") },
-                    modifier = Modifier.fillMaxWidth(),
-                    maxLines = 3
-                )
-                Spacer(modifier = Modifier.height(16.dp))
-                Button(
-                    onClick = {
-                        scope.launch {
-                            viewModel.updateTransaction(transaction!!.copy(note = tempNote))
-                            showNoteSheet = false
+        // 3. Date Sheet
+        if (showDateSheet) {
+            val datePickerState = rememberDatePickerState(
+                initialSelectedDateMillis = transaction!!.date
+            )
+            DatePickerDialog(
+                onDismissRequest = { showDateSheet = false },
+                confirmButton = {
+                    TextButton(onClick = {
+                        datePickerState.selectedDateMillis?.let { newDate ->
+                            scope.launch {
+                                viewModel.updateTransaction(transaction!!.copy(date = newDate))
+                                showDateSheet = false
+                            }
                         }
-                    },
-                    modifier = Modifier.fillMaxWidth(),
-                    colors = ButtonDefaults.buttonColors(containerColor = YellowPrimary)
-                ) {
-                    Text("确定", color = Color.Black)
+                    }) {
+                        Text("确定")
+                    }
+                },
+                dismissButton = {
+                    TextButton(onClick = { showDateSheet = false }) {
+                        Text("取消")
+                    }
                 }
-                Spacer(modifier = Modifier.height(32.dp))
+            ) {
+                DatePicker(state = datePickerState)
             }
         }
-    }
 
-    // Delete Dialog
-    if (showDeleteDialog) {
-        androidx.compose.material3.AlertDialog(
-            onDismissRequest = { showDeleteDialog = false },
-            title = { Text("删除账单") },
-            text = { Text("确定要删除这条记录吗？") },
-            confirmButton = {
-                TextButton(
-                    onClick = {
-                        viewModel.deleteTransaction(transaction!!)
-                        showDeleteDialog = false
-                        onBack()
+        // 4. Note Sheet
+        if (showNoteSheet) {
+            ModalBottomSheet(
+                onDismissRequest = { showNoteSheet = false },
+                sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+            ) {
+                Column(modifier = Modifier.padding(16.dp)) {
+                    Text("编辑备注", style = MaterialTheme.typography.titleMedium)
+                    Spacer(modifier = Modifier.height(16.dp))
+                    OutlinedTextField(
+                        value = tempNote,
+                        onValueChange = { tempNote = it },
+                        label = { Text("备注") },
+                        modifier = Modifier.fillMaxWidth(),
+                        maxLines = 3
+                    )
+                    Spacer(modifier = Modifier.height(16.dp))
+                    Button(
+                        onClick = {
+                            scope.launch {
+                                viewModel.updateTransaction(transaction!!.copy(note = tempNote))
+                                showNoteSheet = false
+                            }
+                        },
+                        modifier = Modifier.fillMaxWidth(),
+                        colors = ButtonDefaults.buttonColors(containerColor = YellowPrimary)
+                    ) {
+                        Text("确定", color = Color.Black)
                     }
-                ) {
-                    Text("删除", color = Color.Red)
-                }
-            },
-            dismissButton = {
-                TextButton(onClick = { showDeleteDialog = false }) {
-                    Text("取消")
+                    Spacer(modifier = Modifier.height(32.dp))
                 }
             }
-        )
+        }
+
+        // Delete Dialog
+        if (showDeleteDialog) {
+            androidx.compose.material3.AlertDialog(
+                onDismissRequest = { showDeleteDialog = false },
+                title = { Text("删除账单") },
+                text = { Text("确定要删除这条记录吗？") },
+                confirmButton = {
+                    TextButton(
+                        onClick = {
+                            viewModel.deleteTransaction(transaction!!)
+                            showDeleteDialog = false
+                            onBack()
+                        }
+                    ) {
+                        Text("删除", color = Color.Red)
+                    }
+                },
+                dismissButton = {
+                    TextButton(onClick = { showDeleteDialog = false }) {
+                        Text("取消")
+                    }
+                }
+            )
+        }
     }
 }
 
@@ -342,13 +374,33 @@ fun DetailItem(label: String, value: String, onClick: () -> Unit) {
         modifier = Modifier
             .fillMaxWidth()
             .clickable(onClick = onClick)
-            .padding(16.dp),
+            .padding(horizontal = 24.dp, vertical = 20.dp),
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Text(text = label, style = MaterialTheme.typography.bodyLarge, color = Color.Gray)
-        Text(text = value, style = MaterialTheme.typography.bodyLarge)
+        Text(text = label, style = MaterialTheme.typography.bodyLarge, color = GrayText)
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Text(
+                text = value,
+                style = MaterialTheme.typography.bodyLarge,
+                fontWeight = FontWeight.Medium,
+                color = BlackPrimary
+            )
+            Spacer(modifier = Modifier.width(4.dp))
+            Icon(
+                Icons.Default.KeyboardArrowRight,
+                contentDescription = null,
+                tint = GrayText.copy(alpha = 0.5f),
+                modifier = Modifier.size(16.dp)
+            )
+        }
     }
+    // Divider
+    HorizontalDivider(
+        modifier = Modifier.padding(horizontal = 24.dp),
+        thickness = 0.5.dp,
+        color = GrayText.copy(alpha = 0.1f)
+    )
 }
 
 // Category Selection Sheet with Type Switching
@@ -365,7 +417,8 @@ fun CategorySelectionSheet(
     val incomeCategories by viewModel.incomeCategories.collectAsState()
     val expenseCategories by viewModel.expenseCategories.collectAsState()
 
-    val categories = if (selectedType == TransactionType.EXPENSE) expenseCategories else incomeCategories
+    val categories =
+        if (selectedType == TransactionType.EXPENSE) expenseCategories else incomeCategories
 
     ModalBottomSheet(
         onDismissRequest = onDismiss,

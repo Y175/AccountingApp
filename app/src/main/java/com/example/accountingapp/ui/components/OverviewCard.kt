@@ -28,7 +28,10 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.accountingapp.ui.theme.BlackPrimary
+import com.example.accountingapp.ui.theme.ExpenseRed
 import com.example.accountingapp.ui.theme.GrayText
+import com.example.accountingapp.ui.theme.IncomeGreen
 import com.example.accountingapp.ui.theme.YellowPrimary
 
 @Composable
@@ -42,94 +45,107 @@ fun OverviewCard(
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(16.dp),
-        shape = RoundedCornerShape(24.dp),
-        elevation = CardDefaults.cardElevation(defaultElevation = 8.dp),
-        colors = CardDefaults.cardColors(containerColor = Color.Transparent) // Transparent to show gradient
+            .padding(horizontal = 24.dp, vertical = 24.dp),
+        shape = RoundedCornerShape(32.dp),
+        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
+        colors = CardDefaults.cardColors(containerColor = Color.White)
     ) {
         Box(
             modifier = Modifier
                 .background(
-                    brush = androidx.compose.ui.graphics.Brush.linearGradient(
-                        colors = listOf(Color.White, Color(0xFFFFFDE7)) // White to very light yellow
+                    brush = androidx.compose.ui.graphics.Brush.verticalGradient(
+                        colors = listOf(Color.White, YellowPrimary.copy(alpha=0.08f))
                     )
                 )
-                .padding(20.dp)
+                .padding(24.dp)
         ) {
-            Column {
-                // Header: Balance Label and Month Selector
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                // Month Selector - Centered and elegant
+                Box(
+                    modifier = Modifier
+                        .clickable { onMonthClick() }
+                        .background(YellowPrimary.copy(alpha = 0.15f), RoundedCornerShape(20.dp))
+                        .padding(horizontal = 16.dp, vertical = 8.dp),
+                    contentAlignment = Alignment.Center
                 ) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Text(
-                            text = "本月结余",
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = GrayText
+                            text = currentMonth.replace("\n", " "),
+                            style = MaterialTheme.typography.labelLarge,
+                            fontWeight = FontWeight.Bold,
+                            color = Color.Black.copy(alpha = 0.8f)
                         )
-                    }
-                    
-                    // Month Selector
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        modifier = Modifier
-                            .background(YellowPrimary.copy(alpha = 0.3f), RoundedCornerShape(16.dp))
-                            .padding(horizontal = 12.dp, vertical = 6.dp)
-                            .clickable { onMonthClick() }
-                    ) {
-                        Text(
-                            text = currentMonth,
-                            style = MaterialTheme.typography.labelMedium,
-                            fontWeight = FontWeight.Bold
+                        Spacer(modifier = Modifier.width(4.dp))
+                        Icon(
+                            Icons.Default.ArrowDropDown, 
+                            contentDescription = null, 
+                            modifier = Modifier.size(20.dp),
+                            tint = Color.Black.copy(alpha = 0.6f)
                         )
-                        Icon(Icons.Default.ArrowDropDown, contentDescription = "Select Month", modifier = Modifier.size(16.dp))
                     }
                 }
 
-                Spacer(modifier = Modifier.height(12.dp))
-
-                // Balance Amount
-                Text(
-                    text = String.format("%.2f", balance),
-                    style = MaterialTheme.typography.displayLarge.copy(fontSize = 40.sp),
-                    fontWeight = FontWeight.ExtraBold,
-                    color = Color.Black
-                )
-
                 Spacer(modifier = Modifier.height(24.dp))
 
-                // Income and Expense
+                // Balance Layout
+                Text(
+                    text = "本月结余",
+                    style = MaterialTheme.typography.labelMedium,
+                    color = GrayText,
+                    fontWeight = FontWeight.Medium
+                )
+                
+                Spacer(modifier = Modifier.height(8.dp))
+
+                Text(
+                    text = String.format("%.2f", balance),
+                    style = MaterialTheme.typography.displayLarge.copy(
+                        fontSize = 48.sp,
+                        // 或者直接使用权重值
+                        fontWeight = FontWeight(900),
+                        letterSpacing = (-1).sp
+                    ),
+                    color = BlackPrimary
+                )
+
+                Spacer(modifier = Modifier.height(32.dp))
+
+                // Income/Expense Row
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween
                 ) {
-                    Column {
+                    // Income
+                    Column(horizontalAlignment = Alignment.Start) {
                         Row(verticalAlignment = Alignment.CenterVertically) {
-                            Box(modifier = Modifier.size(8.dp).background(Color(0xFF4CAF50), CircleShape))
-                            Spacer(modifier = Modifier.width(4.dp))
-                            Text("收入", style = MaterialTheme.typography.labelSmall, color = GrayText)
+                            Box(modifier = Modifier.size(8.dp).background(IncomeGreen, CircleShape))
+                            Spacer(modifier = Modifier.width(6.dp))
+                            Text("收入", style = MaterialTheme.typography.labelMedium, color = GrayText)
                         }
                         Spacer(modifier = Modifier.height(4.dp))
                         Text(
                             text = String.format("%.2f", income),
-                            style = MaterialTheme.typography.titleMedium,
-                            fontWeight = FontWeight.Bold
+                            style = MaterialTheme.typography.titleLarge,
+                            fontWeight = FontWeight.Bold,
+                            color = BlackPrimary
                         )
                     }
                     
+                    // Expense
                     Column(horizontalAlignment = Alignment.End) {
                         Row(verticalAlignment = Alignment.CenterVertically) {
-                            Box(modifier = Modifier.size(8.dp).background(Color(0xFFFF5252), CircleShape))
-                            Spacer(modifier = Modifier.width(4.dp))
-                            Text("支出", style = MaterialTheme.typography.labelSmall, color = GrayText)
+                            Box(modifier = Modifier.size(8.dp).background(ExpenseRed, CircleShape))
+                            Spacer(modifier = Modifier.width(6.dp))
+                            Text("支出", style = MaterialTheme.typography.labelMedium, color = GrayText)
                         }
                         Spacer(modifier = Modifier.height(4.dp))
                         Text(
                             text = String.format("%.2f", expense),
-                            style = MaterialTheme.typography.titleMedium,
-                            fontWeight = FontWeight.Bold
+                            style = MaterialTheme.typography.titleLarge,
+                            fontWeight = FontWeight.Bold,
+                            color = BlackPrimary
                         )
                     }
                 }
