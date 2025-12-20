@@ -13,7 +13,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
 import androidx.compose.ui.graphics.asAndroidPath
-import com.example.accountingapp.ui.theme.YellowPrimary
+import com.example.accountingapp.ui.theme.ApricotOrange
 
 @Composable
 fun LineChart(
@@ -69,7 +69,7 @@ fun LineChart(
 
         drawPath(
             path = animatedPath,
-            color = YellowPrimary,
+            color = ApricotOrange,
             style = Stroke(width = 4.dp.toPx())
         )
 
@@ -85,7 +85,7 @@ fun LineChart(
                     alpha = alpha
                 )
                 drawCircle(
-                    color = YellowPrimary,
+                    color = ApricotOrange,
                     radius = 4.dp.toPx(),
                     center = point,
                     alpha = alpha

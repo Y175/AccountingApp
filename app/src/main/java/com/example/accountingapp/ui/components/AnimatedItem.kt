@@ -9,29 +9,45 @@ import androidx.compose.animation.slideInVertically
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.tween
+import androidx.compose.foundation.layout.Box
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.ui.graphics.graphicsLayer
+import kotlinx.coroutines.launch
 
 @Composable
 fun AnimatedItem(
     modifier: Modifier = Modifier,
-    delayMillis: Int = 0,
+    index: Int = 0, // Staggered index
     content: @Composable () -> Unit
 ) {
-    val visibleState = remember {
-        MutableTransitionState(false).apply {
-            targetState = true
+    val alphaAnim = remember { Animatable(0f) }
+    val slideAnim = remember { Animatable(50f) }
+
+    LaunchedEffect(Unit) {
+        val delay = index * 50 // Stagger delay
+        // Delay before starting
+        kotlinx.coroutines.delay(delay.toLong())
+        
+        // Parallel animation
+        launch {
+            alphaAnim.animateTo(1f, animationSpec = tween(durationMillis = 300))
+        }
+        launch {
+             slideAnim.animateTo(0f, animationSpec = spring(
+                dampingRatio = Spring.DampingRatioLowBouncy,
+                stiffness = Spring.StiffnessVeryLow
+            ))
         }
     }
 
-    AnimatedVisibility(
-        visibleState = visibleState,
-        enter = slideInVertically(
-            animationSpec = spring(
-                dampingRatio = Spring.DampingRatioLowBouncy,
-                stiffness = Spring.StiffnessLow
-            ),
-            initialOffsetY = { 50 }
-        ) + fadeIn(initialAlpha = 0.3f),
+    Box(
         modifier = modifier
+            .graphicsLayer {
+                alpha = alphaAnim.value
+                translationY = slideAnim.value
+            }
     ) {
         content()
     }

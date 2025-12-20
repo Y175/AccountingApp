@@ -27,16 +27,11 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.accountingapp.data.Transaction
 import com.example.accountingapp.data.TransactionType
-import com.example.accountingapp.ui.theme.ExpenseRed
-import com.example.accountingapp.ui.theme.GrayText
-import com.example.accountingapp.ui.theme.IncomeGreen
-import com.example.accountingapp.ui.theme.YellowPrimary
 import com.example.accountingapp.util.CategoryIcons
 import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.height
 import androidx.compose.ui.draw.scale
-import com.example.accountingapp.ui.theme.BlackPrimary
-import com.example.accountingapp.ui.theme.YellowBackground
+import com.example.accountingapp.ui.theme.InkBlack
 
 @OptIn(androidx.compose.foundation.ExperimentalFoundationApi::class)
 @Composable
@@ -47,71 +42,101 @@ fun TransactionItem(
 ) {
     val interactionSource = remember { MutableInteractionSource() }
     val isPressed by interactionSource.collectIsPressedAsState()
-    
+
     val scale by androidx.compose.animation.core.animateFloatAsState(
         targetValue = if (isPressed) 0.96f else 1f,
+        animationSpec = androidx.compose.animation.core.spring(
+            dampingRatio = androidx.compose.animation.core.Spring.DampingRatioMediumBouncy,
+            stiffness = androidx.compose.animation.core.Spring.StiffnessLow
+        ),
         label = "scale"
     )
 
-    Row(
+    // 获取类目颜色
+    val categoryColor = CategoryIcons.getColor(transaction.categoryIcon)
+
+    // Floating Pill Card
+    androidx.compose.material3.Surface(
         modifier = Modifier
             .fillMaxWidth()
+            .padding(horizontal = 16.dp, vertical = 4.dp) // 添加水平和垂直间距
             .scale(scale)
             .combinedClickable(
                 onClick = onClick,
                 onLongClick = onLongClick,
-                indication = rememberRipple(color = YellowPrimary.copy(alpha=0.2f)),
+                indication = rememberRipple(color = categoryColor.copy(alpha = 0.1f)),
                 interactionSource = interactionSource
-            )
-            .padding(horizontal = 20.dp, vertical = 14.dp),
-        verticalAlignment = Alignment.CenterVertically
+            ),
+        shape = androidx.compose.foundation.shape.RoundedCornerShape(20.dp),
+        color = com.example.accountingapp.ui.theme.PureWhite,
+        shadowElevation = 1.dp, // 减小阴影
+        tonalElevation = 0.dp
     ) {
-        // Icon
-        androidx.compose.foundation.layout.Box(
+        Row(
             modifier = Modifier
-                .size(48.dp)
-                .clip(CircleShape)
-                .background(YellowBackground), // Slightly off-white background for icon
-            contentAlignment = Alignment.Center
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp, vertical = 14.dp), // 调整内边距
+            verticalAlignment = Alignment.CenterVertically
         ) {
-            Icon(
-                imageVector = CategoryIcons.getIcon(transaction.categoryIcon),
-                contentDescription = transaction.categoryName,
-                tint = BlackPrimary.copy(alpha = 0.8f),
-                modifier = Modifier.size(24.dp)
-            )
-        }
-
-        Spacer(modifier = Modifier.width(16.dp))
-
-        // Category and Note
-        Column(modifier = Modifier.weight(1f)) {
-            Text(
-                text = transaction.categoryName,
-                style = MaterialTheme.typography.bodyLarge,
-                fontWeight = FontWeight.SemiBold,
-                color = BlackPrimary
-            )
-            if (transaction.note.isNotEmpty()) {
-                Spacer(modifier = Modifier.height(2.dp))
-                Text(
-                    text = transaction.note,
-                    style = MaterialTheme.typography.labelSmall,
-                    color = GrayText.copy(alpha = 0.8f),
-                    maxLines = 1
+            // Icon
+            androidx.compose.foundation.layout.Box(
+                modifier = Modifier
+                    .size(44.dp) // 稍微减小图标容器
+                    .clip(CircleShape)
+                    .background(categoryColor.copy(alpha = 0.12f)), // 使用类目颜色的浅色背景
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    imageVector = CategoryIcons.getIcon(transaction.categoryIcon),
+                    contentDescription = transaction.categoryName,
+                    tint = categoryColor, // 使用类目颜色
+                    modifier = Modifier.size(22.dp)
                 )
             }
+
+            Spacer(modifier = Modifier.width(14.dp))
+
+            // Category and Note
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = transaction.categoryName,
+                    style = MaterialTheme.typography.bodyLarge,
+                    fontWeight = FontWeight.SemiBold, // 从 Bold 改为 SemiBold
+                    color = com.example.accountingapp.ui.theme.InkBlack,
+                    fontSize = 15.sp
+                )
+                if (transaction.note.isNotEmpty()) {
+                    Spacer(modifier = Modifier.height(2.dp))
+                    Text(
+                        text = transaction.note,
+                        style = MaterialTheme.typography.labelSmall,
+                        color = com.example.accountingapp.ui.theme.SlateGray.copy(alpha = 0.7f),
+                        fontSize = 12.sp,
+                        maxLines = 1
+                    )
+                }
+            }
+
+            Spacer(modifier = Modifier.width(12.dp))
+
+            // Amount
+            val amountColor = if (transaction.type == TransactionType.INCOME)
+                com.example.accountingapp.ui.theme.SoftGreen
+            else
+                com.example.accountingapp.ui.theme.SoftRed
+
+            val amountText = if (transaction.type == TransactionType.EXPENSE)
+                "-¥${String.format("%.0f", transaction.amount)}"
+            else
+                "+¥${String.format("%.0f", transaction.amount)}"
+
+            Text(
+                text = amountText,
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.Bold,
+                color = amountColor,
+                fontSize = 16.sp
+            )
         }
-
-        // Amount
-        val amountSign = if (transaction.type == TransactionType.INCOME) "+" else "-"
-        val amountColor = if (transaction.type == TransactionType.INCOME) IncomeGreen else ExpenseRed
-
-        Text(
-            text = "$amountSign${String.format("%.2f", transaction.amount)}",
-            style = MaterialTheme.typography.titleMedium,
-            fontWeight = FontWeight.Bold,
-            color = amountColor
-        )
     }
 }

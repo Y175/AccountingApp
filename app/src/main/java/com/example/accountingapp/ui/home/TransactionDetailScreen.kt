@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -25,6 +26,7 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.DatePicker
 import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -53,21 +55,18 @@ import androidx.compose.ui.unit.sp
 import com.example.accountingapp.MainViewModel
 import com.example.accountingapp.data.Category
 import com.example.accountingapp.data.TransactionType
-import com.example.accountingapp.ui.theme.YellowPrimary
+import com.example.accountingapp.ui.theme.InkBlack
+import com.example.accountingapp.ui.theme.SlateGray
+import com.example.accountingapp.ui.theme.PureWhite
+import com.example.accountingapp.ui.theme.WarmPaper
+import com.example.accountingapp.ui.theme.FreshAirBlue
+import com.example.accountingapp.ui.theme.ApricotOrange
+import com.example.accountingapp.ui.theme.GrayText
 import com.example.accountingapp.util.CategoryIcons
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
-import com.example.accountingapp.ui.theme.YellowBackground
-import com.example.accountingapp.ui.theme.BlackPrimary
-import com.example.accountingapp.ui.theme.White
-import com.example.accountingapp.ui.theme.GrayText
-import androidx.compose.foundation.layout.offset
-import androidx.compose.foundation.border
-import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.material3.HorizontalDivider
-import com.example.accountingapp.ui.bookkeeping.TypeTab
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -110,50 +109,46 @@ fun TransactionDetailScreen(
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .background(YellowPrimary)
+                    .background(FreshAirBlue)
                     .padding(top = 16.dp, bottom = 16.dp, start = 16.dp, end = 16.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 IconButton(onClick = onBack) {
-                    Icon(Icons.Default.ArrowBack, contentDescription = "返回", tint = BlackPrimary)
+                    Icon(Icons.Default.ArrowBack, contentDescription = "返回", tint = PureWhite)
                 }
                 Spacer(modifier = Modifier.weight(1f))
                 Text(
                     text = "账单详情",
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Bold,
-                    color = BlackPrimary
+                    color = PureWhite
                 )
                 Spacer(modifier = Modifier.weight(1f))
                 IconButton(onClick = { showDeleteDialog = true }) {
-                    Icon(Icons.Default.Delete, contentDescription = "删除", tint = BlackPrimary)
+                    Icon(Icons.Default.Delete, contentDescription = "删除", tint = PureWhite)
                 }
             }
         },
-        containerColor = YellowBackground
+        containerColor = FreshAirBlue
     ) { padding ->
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(padding)
-                .background(YellowBackground)
+                .background(FreshAirBlue)
         ) {
             // Top Icon + Category - Large and Centered
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .background(
-                        brush = androidx.compose.ui.graphics.Brush.verticalGradient(
-                            colors = listOf(YellowPrimary, YellowBackground)
-                        )
-                    )
+                    .background(FreshAirBlue)
                     .padding(bottom = 40.dp),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 Box(
                     modifier = Modifier
                         .size(80.dp)
-                        .background(White, CircleShape)
+                        .background(PureWhite, CircleShape)
                         .padding(16.dp),
                     contentAlignment = Alignment.Center
                 ) {
@@ -161,7 +156,7 @@ fun TransactionDetailScreen(
                         imageVector = CategoryIcons.getIcon(transaction!!.categoryIcon),
                         contentDescription = transaction!!.categoryName,
                         modifier = Modifier.size(40.dp),
-                        tint = BlackPrimary
+                        tint = InkBlack
                     )
                 }
                 Spacer(modifier = Modifier.height(16.dp))
@@ -169,7 +164,7 @@ fun TransactionDetailScreen(
                     text = transaction!!.categoryName,
                     style = MaterialTheme.typography.headlineSmall,
                     fontWeight = FontWeight.Bold,
-                    color = BlackPrimary
+                    color = PureWhite
                 )
             }
 
@@ -179,7 +174,7 @@ fun TransactionDetailScreen(
                     .fillMaxWidth()
                     .padding(horizontal = 24.dp)
                     .offset(y = (-20).dp) // Overlap with header
-                    .background(White, RoundedCornerShape(24.dp))
+                    .background(WarmPaper, RoundedCornerShape(topStart = 32.dp, topEnd = 32.dp))
                     .padding(vertical = 8.dp)
             ) {
                 DetailItem(
@@ -269,9 +264,9 @@ fun TransactionDetailScreen(
                             }
                         },
                         modifier = Modifier.fillMaxWidth(),
-                        colors = ButtonDefaults.buttonColors(containerColor = YellowPrimary)
+                        colors = ButtonDefaults.buttonColors(containerColor = ApricotOrange)
                     ) {
-                        Text("确定", color = Color.Black)
+                        Text("确定", color = PureWhite)
                     }
                     Spacer(modifier = Modifier.height(32.dp))
                 }
@@ -332,9 +327,9 @@ fun TransactionDetailScreen(
                             }
                         },
                         modifier = Modifier.fillMaxWidth(),
-                        colors = ButtonDefaults.buttonColors(containerColor = YellowPrimary)
+                        colors = ButtonDefaults.buttonColors(containerColor = ApricotOrange)
                     ) {
-                        Text("确定", color = Color.Black)
+                        Text("确定", color = PureWhite)
                     }
                     Spacer(modifier = Modifier.height(32.dp))
                 }
@@ -378,13 +373,13 @@ fun DetailItem(label: String, value: String, onClick: () -> Unit) {
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Text(text = label, style = MaterialTheme.typography.bodyLarge, color = GrayText)
+        Text(text = label, style = MaterialTheme.typography.bodyLarge, color = SlateGray)
         Row(verticalAlignment = Alignment.CenterVertically) {
             Text(
                 text = value,
                 style = MaterialTheme.typography.bodyLarge,
                 fontWeight = FontWeight.Medium,
-                color = BlackPrimary
+                color = InkBlack
             )
             Spacer(modifier = Modifier.width(4.dp))
             Icon(
@@ -486,7 +481,7 @@ fun CategoryItemInSheet(
             modifier = Modifier
                 .size(48.dp)
                 .background(
-                    if (isSelected) YellowPrimary else Color.LightGray.copy(alpha = 0.3f),
+                    if (isSelected) ApricotOrange else com.example.accountingapp.ui.theme.LightGray,
                     CircleShape
                 ),
             contentAlignment = Alignment.Center
@@ -512,7 +507,7 @@ fun TypeTab(text: String, isSelected: Boolean, onClick: () -> Unit) {
     Box(
         modifier = Modifier
             .background(
-                if (isSelected) YellowPrimary else Color.Transparent,
+                if (isSelected) ApricotOrange else Color.Transparent,
                 RoundedCornerShape(16.dp)
             )
             .clickable(onClick = onClick)
@@ -521,7 +516,7 @@ fun TypeTab(text: String, isSelected: Boolean, onClick: () -> Unit) {
         Text(
             text = text,
             fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,
-            color = Color.Black
+            color = if (isSelected) PureWhite else InkBlack
         )
     }
 }

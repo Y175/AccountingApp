@@ -19,6 +19,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
@@ -37,8 +38,9 @@ fun BottomNavigationBar(navController: NavController, onAddClick: () -> Unit) {
 
     Box(contentAlignment = Alignment.BottomCenter) {
         NavigationBar(
-            containerColor = Color.White,
-            contentColor = Color.Black
+            containerColor = com.example.accountingapp.ui.theme.PureWhite,
+            contentColor = com.example.accountingapp.ui.theme.InkBlack,
+            tonalElevation = 8.dp
         ) {
             // Home
             NavigationBarItem(
@@ -55,11 +57,11 @@ fun BottomNavigationBar(navController: NavController, onAddClick: () -> Unit) {
                     }
                 },
                 colors = NavigationBarItemDefaults.colors(
-                    selectedIconColor = Color.Black,
-                    selectedTextColor = Color.Black,
-                    indicatorColor = YellowPrimary,
-                    unselectedIconColor = Color.Gray,
-                    unselectedTextColor = Color.Gray
+                    selectedIconColor = com.example.accountingapp.ui.theme.FreshAirBlue,
+                    selectedTextColor = com.example.accountingapp.ui.theme.FreshAirBlue,
+                    indicatorColor = com.example.accountingapp.ui.theme.FreshAirBlue.copy(alpha=0.1f),
+                    unselectedIconColor = com.example.accountingapp.ui.theme.SlateGray,
+                    unselectedTextColor = com.example.accountingapp.ui.theme.SlateGray
                 )
             )
 
@@ -86,25 +88,26 @@ fun BottomNavigationBar(navController: NavController, onAddClick: () -> Unit) {
                     }
                 },
                 colors = NavigationBarItemDefaults.colors(
-                    selectedIconColor = Color.Black,
-                    selectedTextColor = Color.Black,
-                    indicatorColor = YellowPrimary,
-                    unselectedIconColor = Color.Gray,
-                    unselectedTextColor = Color.Gray
+                    selectedIconColor = com.example.accountingapp.ui.theme.ApricotOrange,
+                    selectedTextColor = com.example.accountingapp.ui.theme.ApricotOrange,
+                    indicatorColor = com.example.accountingapp.ui.theme.ApricotOrange.copy(alpha=0.1f),
+                    unselectedIconColor = com.example.accountingapp.ui.theme.SlateGray,
+                    unselectedTextColor = com.example.accountingapp.ui.theme.SlateGray
                 )
             )
         }
 
-        // Custom Middle Button
+        // Custom Middle Button (Lilac)
         FloatingActionButton(
             onClick = onAddClick,
-            containerColor = YellowPrimary,
-            contentColor = Color.Black,
+            containerColor = com.example.accountingapp.ui.theme.LilacAccent,
+            contentColor = Color.White,
             shape = CircleShape,
             modifier = Modifier
-                .offset(y = (-20).dp)
-                .size(64.dp),
-            elevation = FloatingActionButtonDefaults.elevation(8.dp)
+                .offset(y = (-24).dp)
+                .size(64.dp)
+                .shadow(8.dp, CircleShape),
+            elevation = FloatingActionButtonDefaults.elevation(0.dp) // Handled by shadow
         ) {
             Icon(Icons.Default.Add, contentDescription = "Add", modifier = Modifier.size(32.dp))
         }

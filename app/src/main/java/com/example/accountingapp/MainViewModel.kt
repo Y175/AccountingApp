@@ -29,6 +29,7 @@ class MainViewModel(private val repository: AccountingRepository) : ViewModel() 
     val filterType: StateFlow<DateFilterType> = _filterType
 
     private val _currentDateRangeStart = MutableStateFlow(getStartOfMonth(Calendar.getInstance()))
+    val currentFilterStart: StateFlow<Long> = _currentDateRangeStart
     private val _currentDateRangeEnd = MutableStateFlow(getEndOfMonth(Calendar.getInstance()))
 
     // Transactions for the current filtered date range

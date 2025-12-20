@@ -32,11 +32,8 @@ import androidx.compose.ui.unit.dp
 import com.example.accountingapp.MainViewModel
 import com.example.accountingapp.ui.components.AnimatedItem
 import com.example.accountingapp.ui.components.TransactionItem
-import com.example.accountingapp.ui.theme.YellowPrimary
-import com.example.accountingapp.util.CategoryIcons
-import java.text.SimpleDateFormat
-import java.util.Date
-import java.util.Locale
+import com.example.accountingapp.ui.theme.ApricotOrange
+import com.example.accountingapp.ui.theme.WarmPaper
 
 @Composable
 fun CategoryDetailsScreen(
@@ -51,7 +48,7 @@ fun CategoryDetailsScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(YellowPrimary)
+            .background(ApricotOrange)
     ) {
         // Header
         Box(
@@ -96,8 +93,8 @@ fun CategoryDetailsScreen(
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .background(Color.White, RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp))
-                .padding(top = 16.dp)
+                .background(WarmPaper, RoundedCornerShape(topStart = 32.dp, topEnd = 32.dp))
+                .padding(top = 16.dp, start = 16.dp, end = 16.dp)
         ) {
             if (categoryTransactions.isEmpty()) {
                 Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {

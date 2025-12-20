@@ -7,7 +7,6 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -19,15 +18,26 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowDropDown
-import androidx.compose.material.icons.filled.Category
+import androidx.compose.material.icons.filled.DateRange
+import androidx.compose.material.icons.filled.PieChart
+import androidx.compose.material.icons.filled.ShowChart
+import androidx.compose.material3.DatePickerDialog
+import androidx.compose.material3.DateRangePicker
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.material3.rememberDateRangePickerState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -39,24 +49,19 @@ import com.example.accountingapp.MainViewModel
 import com.example.accountingapp.TimeRange
 import com.example.accountingapp.data.CategoryRanking
 import com.example.accountingapp.data.TransactionType
-import com.example.accountingapp.ui.components.LineChart
-import com.example.accountingapp.ui.theme.YellowPrimary
 import com.example.accountingapp.ui.bookkeeping.TypeTab
-import androidx.compose.material.icons.filled.DateRange
-import androidx.compose.material.icons.filled.PieChart
-import androidx.compose.material.icons.filled.ShowChart
-import androidx.compose.material3.DatePickerDialog
-import androidx.compose.material3.DateRangePicker
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.TextButton
-import androidx.compose.material3.rememberDateRangePickerState
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import com.example.accountingapp.ui.components.AnimatedItem
+import com.example.accountingapp.ui.components.LineChart
 import com.example.accountingapp.ui.components.PieChart
+import com.example.accountingapp.ui.theme.ApricotOrange
+import com.example.accountingapp.ui.theme.ChartBlue
+import com.example.accountingapp.ui.theme.ChartGreen
+import com.example.accountingapp.ui.theme.ChartOrange
+import com.example.accountingapp.ui.theme.ChartPurple
+import com.example.accountingapp.ui.theme.FreshAirBlue
+import com.example.accountingapp.ui.theme.SoftGreen
+import com.example.accountingapp.ui.theme.SoftRed
+import com.example.accountingapp.ui.theme.WarmPaper
 import com.example.accountingapp.util.CategoryIcons
 import java.text.SimpleDateFormat
 import java.util.Calendar
@@ -160,7 +165,7 @@ fun StatisticsScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(YellowPrimary)
+            .background(ApricotOrange) // Header Color
     ) {
         // Fixed Header - 固定在顶部
         Row(
@@ -190,11 +195,13 @@ fun StatisticsScreen(
             }
         }
 
-        // Scrollable Content - 可滚动内容
+        // Scrollable Content - Floating White Sheet
         LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
-                .background(Color.White, RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp))
+                .background(WarmPaper, RoundedCornerShape(topStart = 32.dp, topEnd = 32.dp))
+                .padding(horizontal = 16.dp), // Add padding to content inside
+             contentPadding = androidx.compose.foundation.layout.PaddingValues(bottom = 80.dp, top = 24.dp)
         ) {
             // Time Range Selector
             item {
@@ -218,7 +225,7 @@ fun StatisticsScreen(
                             modifier = Modifier
                                 .weight(1f)
                                 .background(
-                                    if (selectedTimeRange == range) YellowPrimary else Color.Transparent,
+                                    if (selectedTimeRange == range) ApricotOrange else Color.Transparent,
                                     RoundedCornerShape(6.dp)
                                 )
                                 .clickable {
@@ -294,7 +301,7 @@ fun StatisticsScreen(
                                         modifier = Modifier
                                             .then(
                                                 if (offset == selectedOffset) {
-                                                    Modifier.background(YellowPrimary, RoundedCornerShape(8.dp))
+                                                    Modifier.background(ApricotOrange, RoundedCornerShape(8.dp))
                                                 } else {
                                                     Modifier
                                                 }
@@ -326,7 +333,7 @@ fun StatisticsScreen(
                                         modifier = Modifier
                                             .then(
                                                 if (offset == selectedOffset) {
-                                                    Modifier.background(YellowPrimary, RoundedCornerShape(8.dp))
+                                                    Modifier.background(ApricotOrange, RoundedCornerShape(8.dp))
                                                 } else {
                                                     Modifier
                                                 }
@@ -356,7 +363,7 @@ fun StatisticsScreen(
                                         modifier = Modifier
                                             .then(
                                                 if (offset == selectedOffset) {
-                                                    Modifier.background(YellowPrimary, RoundedCornerShape(8.dp))
+                                                    Modifier.background(ApricotOrange, RoundedCornerShape(8.dp))
                                                 } else {
                                                     Modifier
                                                 }
@@ -475,8 +482,8 @@ fun StatisticsScreen(
                         ) {
                             if (pieChartData.isNotEmpty()) {
                                 val colors = listOf(
-                                    Color(0xFFFFC107), Color(0xFFFF5722), Color(0xFF4CAF50),
-                                    Color(0xFF2196F3), Color(0xFF9C27B0), Color(0xFF607D8B)
+                                    ChartBlue, ChartOrange, ChartPurple, ChartGreen, 
+                                    SoftRed, SoftGreen, FreshAirBlue
                                 )
                                 val coloredData = pieChartData.mapIndexed { index, item ->
                                     item.copy(color = colors[index % colors.size])
@@ -564,9 +571,9 @@ fun RankingListItem(
                     progress = item.percentage,
                     modifier = Modifier
                         .weight(1f)
-                        .height(6.dp)
-                        .clip(RoundedCornerShape(3.dp)),
-                    color = YellowPrimary,
+                        .height(8.dp)
+                        .clip(RoundedCornerShape(4.dp)),
+                    color = ApricotOrange,
                     trackColor = Color(0xFFEEEEEE)
                 )
                 Spacer(modifier = Modifier.width(8.dp))
