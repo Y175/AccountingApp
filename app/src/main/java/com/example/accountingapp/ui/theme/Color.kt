@@ -43,3 +43,11 @@ val CreamYellow = ApricotOrange
 val MorandiGreen = SoftGreen
 val MorandiRed = SoftRed
 val MorandiBlue = SoftBlue
+
+// Pastel Palette for Transaction Categories & Keypad
+val PastelPink = Color(0xFFFFE4E1)
+val PastelBlue = Color(0xFFE3F2FD)
+val PastelGreen = Color(0xFFE8F5E9)
+val PastelYellow = Color(0xFFFFF8E1)
+val PastelPurple = Color(0xFFF3E5F5)
+val PastelOrange = Color(0xFFFFF3E0)

@@ -22,6 +22,7 @@ import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -29,6 +30,7 @@ import com.example.accountingapp.MainViewModel
 import com.example.accountingapp.data.Transaction
 import com.example.accountingapp.data.TransactionType
 import com.example.accountingapp.ui.components.AnimatedItem
+import com.example.accountingapp.ui.components.BreathingFAB
 import com.example.accountingapp.ui.components.ElegantDatePickerDialog
 import com.example.accountingapp.ui.components.OverviewCard
 import com.example.accountingapp.ui.components.TransactionItem
@@ -267,91 +269,12 @@ fun HomeScreen(viewModel: MainViewModel, onTransactionClick: (Int) -> Unit) {
                 }
             }
 
-            // 智能透明度 + 呼吸式浮动按钮
-            Box(
-                modifier = Modifier
-                    .align(Alignment.BottomEnd)
-                    .padding(end = 24.dp, bottom = 24.dp)
-            ) {
-                BreathingFAB(
-                    listState = listState,
-                    onClick = { /* TODO: 添加交易 */ }
-                )
-            }
+
         }
     }
 }
 
-@Composable
-fun BreathingFAB(
-    listState: LazyListState,
-    onClick: () -> Unit
-) {
-    // 遮挡检测逻辑
-    val shouldReduceOpacity by remember {
-        derivedStateOf {
-            val layoutInfo = listState.layoutInfo
-            val visibleItems = layoutInfo.visibleItemsInfo
 
-            if (visibleItems.isEmpty()) return@derivedStateOf false
-
-            val fabBottom = layoutInfo.viewportEndOffset - 24
-            val fabTop = fabBottom - 100
-
-            visibleItems.any { item ->
-                val itemBottom = item.offset + item.size
-                val itemTop = item.offset
-                val verticalOverlap = itemBottom > fabTop && itemTop < fabBottom
-                verticalOverlap && itemBottom > fabTop + 20
-            }
-        }
-    }
-
-    val targetAlpha = if (shouldReduceOpacity) 0.35f else 1f
-    val alpha by animateFloatAsState(
-        targetValue = targetAlpha,
-        animationSpec = tween(durationMillis = 300, easing = FastOutSlowInEasing),
-        label = "fab_alpha"
-    )
-
-    // 温柔的缩放呼吸
-    val infiniteTransition = rememberInfiniteTransition(label = "breathing")
-    val breathingScale by infiniteTransition.animateFloat(
-        initialValue = 1f,
-        targetValue = 1.05f,
-        animationSpec = infiniteRepeatable(
-            animation = tween(
-                durationMillis = 2000,
-                easing = FastOutSlowInEasing
-            ),
-            repeatMode = RepeatMode.Reverse
-        ),
-        label = "breathing_scale"
-    )
-
-    // 直接放置 FAB
-    androidx.compose.material3.FloatingActionButton(
-        onClick = onClick,
-        containerColor = LilacAccent,
-        contentColor = PureWhite,
-        shape = CircleShape,
-        elevation = androidx.compose.material3.FloatingActionButtonDefaults.elevation(
-            defaultElevation = 8.dp,
-            pressedElevation = 12.dp
-        ),
-        modifier = Modifier
-            .size(56.dp)
-            .alpha(alpha)
-            .scale(breathingScale)
-            .border(0.dp, Color.Transparent, CircleShape) // 明确移除边框
-    ) {
-        Icon(
-            Icons.Default.Add,
-            contentDescription = "Add Transaction",
-            modifier = Modifier.size(28.dp)
-        )
-    }
-}
 
 @Composable
 fun DateHeader(

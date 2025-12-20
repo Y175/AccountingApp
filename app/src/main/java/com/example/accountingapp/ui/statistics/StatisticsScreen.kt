@@ -49,10 +49,10 @@ import com.example.accountingapp.MainViewModel
 import com.example.accountingapp.TimeRange
 import com.example.accountingapp.data.CategoryRanking
 import com.example.accountingapp.data.TransactionType
-import com.example.accountingapp.ui.bookkeeping.TypeTab
 import com.example.accountingapp.ui.components.AnimatedItem
 import com.example.accountingapp.ui.components.LineChart
 import com.example.accountingapp.ui.components.PieChart
+import com.example.accountingapp.ui.home.TypeTab
 import com.example.accountingapp.ui.theme.ApricotOrange
 import com.example.accountingapp.ui.theme.ChartBlue
 import com.example.accountingapp.ui.theme.ChartGreen
