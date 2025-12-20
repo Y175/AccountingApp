@@ -85,7 +85,7 @@ fun CustomKeypad(
             
             // Done
             KeypadButton(
-                text = "Done",
+                text = "确认",
                 backgroundColor = LilacAccent, // Deep Purple
                 textColor = Color.White,
                 modifier = Modifier.weight(1f),

@@ -1,23 +1,41 @@
 package com.example.accountingapp.ui.bookkeeping
 
-import androidx.compose.animation.*
-import androidx.compose.animation.core.tween
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.slideOutHorizontally
+import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.material.icons.filled.CalendarToday
-import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.Done
 import androidx.compose.material.icons.filled.Settings
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material3.Icon
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextField
+import androidx.compose.material3.TextFieldDefaults
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -30,7 +48,15 @@ import com.example.accountingapp.data.Category
 import com.example.accountingapp.data.Transaction
 import com.example.accountingapp.data.TransactionType
 import com.example.accountingapp.ui.components.CustomKeypad
-import com.example.accountingapp.ui.theme.*
+import com.example.accountingapp.ui.theme.PastelBlue
+import com.example.accountingapp.ui.theme.PastelGreen
+import com.example.accountingapp.ui.theme.PastelOrange
+import com.example.accountingapp.ui.theme.PastelPink
+import com.example.accountingapp.ui.theme.PastelPurple
+import com.example.accountingapp.ui.theme.PastelYellow
+import com.example.accountingapp.ui.theme.SoftBlue
+import com.example.accountingapp.ui.theme.SoftGreen
+import com.example.accountingapp.ui.theme.SoftRed
 import com.example.accountingapp.util.CategoryIcons
 
 private enum class AddTransactionState {
@@ -275,115 +301,157 @@ fun TransactionEntryContent(
     onBack: () -> Unit,
     onSave: () -> Unit
 ) {
-    Column(
+    Box(
         modifier = Modifier
             .fillMaxSize()
             .background(Color.White)
     ) {
-        // Header
-        Box(
+        // 上部内容区域
+        Column(
             modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp)
+                .fillMaxSize()
+                .padding(bottom = 280.dp) // 调整为更合适的值,根据 Keypad 实际高度
         ) {
-            Icon(
-                Icons.Default.ArrowBack,
-                contentDescription = "Back",
-                modifier = Modifier
-                    .align(Alignment.CenterStart)
-                    .clickable { onBack() }
-            )
-            Text(
-                text = "添加记录", // Add Transaction
-                fontSize = 20.sp,
-                fontWeight = FontWeight.Bold,
-                modifier = Modifier.align(Alignment.Center)
-            )
-        }
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        // Large Amount Display
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 24.dp)
-                .clip(RoundedCornerShape(24.dp))
-                .background(Color(0xFFFAFAFA)) // Warm Paper
-                .padding(32.dp),
-            contentAlignment = Alignment.Center
-        ) {
-            Text(
-                text = "$$amountStr", // Using $ as per design image, or ¥? Plan says ¥, image says $. User said "Text use Chinese". 
-                // Let's use currency symbol based on locale or just nothing? 
-                // The design image shows $. The previous code had ¥. Let's stick to simple display.
-                // Or maybe just the number. Let's add $ as requested by the image look-alike, or ¥ if it's Chinese context.
-                // Assuming Chinese context based on "文字还是用中文".
-                color = SoftBlue,
-                fontSize = 48.sp,
-                fontWeight = FontWeight.Bold
-            )
-        }
-
-        Spacer(modifier = Modifier.height(24.dp))
-
-        // Note Input Row
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 24.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            // Selected Category Icon
-            val bgColors = listOf(PastelPink, PastelBlue, PastelGreen, PastelYellow, PastelPurple, PastelOrange)
-            val bgColor = bgColors[category.id % bgColors.size]
-            
+            // Header - 显示分类信息
             Box(
                 modifier = Modifier
-                    .size(56.dp)
-                    .clip(RoundedCornerShape(16.dp))
-                    .background(bgColor),
-                contentAlignment = Alignment.Center
+                    .fillMaxWidth()
+                    .padding(16.dp)
             ) {
                 Icon(
-                    imageVector = CategoryIcons.getIcon(category.iconName),
-                    contentDescription = null,
-                    tint = Color.Black.copy(alpha = 0.7f)
+                    Icons.Default.ArrowBack,
+                    contentDescription = "Back",
+                    modifier = Modifier
+                        .align(Alignment.CenterStart)
+                        .clickable { onBack() }
+                )
+
+                // 中间显示分类图标和名称
+                Row(
+                    modifier = Modifier.align(Alignment.Center),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.Center
+                ) {
+                    // 分类图标
+                    val bgColors = listOf(
+                        PastelPink,
+                        PastelBlue,
+                        PastelGreen,
+                        PastelYellow,
+                        PastelPurple,
+                        PastelOrange
+                    )
+                    val bgColor = bgColors[category.id % bgColors.size]
+
+                    Box(
+                        modifier = Modifier
+                            .size(40.dp)
+                            .clip(RoundedCornerShape(12.dp))
+                            .background(bgColor),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Icon(
+                            imageVector = CategoryIcons.getIcon(category.iconName),
+                            contentDescription = null,
+                            tint = Color.Black.copy(alpha = 0.7f),
+                            modifier = Modifier.size(24.dp)
+                        )
+                    }
+
+                    Spacer(modifier = Modifier.width(12.dp))
+
+                    // 分类名称
+                    Text(
+                        text = category.name,
+                        fontSize = 20.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = Color.Black
+                    )
+                }
+            }
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            // Large Amount Display
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 24.dp)
+                    .clip(RoundedCornerShape(24.dp))
+                    .background(Color(0xFFFAFAFA))
+                    .padding(vertical = 24.dp, horizontal = 32.dp), // 减小垂直 padding
+                contentAlignment = Alignment.Center
+            ) {
+                Text(
+                    text = "¥$amountStr",
+                    color = SoftBlue,
+                    fontSize = 42.sp, // 稍微减小字体
+                    fontWeight = FontWeight.Bold
                 )
             }
-            
-            Spacer(modifier = Modifier.width(16.dp))
-            
-            // Note Field
-            TextField(
-                value = note,
-                onValueChange = onNoteChange,
-                placeholder = { Text("备注...") }, // Notes
-                colors = TextFieldDefaults.colors(
-                    focusedContainerColor = Color.Transparent,
-                    unfocusedContainerColor = Color.Transparent,
-                    focusedIndicatorColor = Color.LightGray,
-                    unfocusedIndicatorColor = Color.LightGray
-                ),
-                modifier = Modifier.weight(1f)
-            )
+
+            Spacer(modifier = Modifier.height(20.dp))
+
+            // Note Input Row
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 24.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                // 备注标签
+                Text(
+                    text = "备注",
+                    fontSize = 16.sp,
+                    color = Color.Gray,
+                    modifier = Modifier.padding(end = 16.dp)
+                )
+
+                // Note Field
+                TextField(
+                    value = note,
+                    onValueChange = onNoteChange,
+                    placeholder = { Text("添加备注...", color = Color.LightGray) },
+                    colors = TextFieldDefaults.colors(
+                        focusedContainerColor = Color.Transparent,
+                        unfocusedContainerColor = Color.Transparent,
+                        focusedIndicatorColor = Color.LightGray,
+                        unfocusedIndicatorColor = Color.LightGray,
+                        focusedTextColor = Color.Black,
+                        unfocusedTextColor = Color.Black
+                    ),
+                    modifier = Modifier.weight(1f),
+                    singleLine = true // 添加单行限制
+                )
+            }
+
+            // 剩余空间用于分隔
+            Spacer(modifier = Modifier.weight(1f))
         }
 
-        Spacer(modifier = Modifier.weight(1f))
-
-        // Custom Keypad
-        CustomKeypad(
-            onNumberClick = { num ->
-                if (amountStr == "0") onAmountChange(num) else onAmountChange(amountStr + num)
-            },
-            onDeleteClick = {
-                if (amountStr.isNotEmpty()) {
-                    val newStr = amountStr.dropLast(1)
-                    onAmountChange(if (newStr.isEmpty()) "0" else newStr)
-                }
-            },
-            onDateClick = { /* TODO: Date Picker */ },
-            onOkClick = onSave
-        )
+        // Custom Keypad - 固定在底部
+        Box(
+            modifier = Modifier
+                .align(Alignment.BottomCenter)
+                .fillMaxWidth()
+        ) {
+            CustomKeypad(
+                onNumberClick = { num ->
+                    if (amountStr == "0") {
+                        onAmountChange(num)
+                    } else {
+                        onAmountChange(amountStr + num)
+                    }
+                },
+                onDeleteClick = {
+                    if (amountStr.isNotEmpty()) {
+                        val newStr = amountStr.dropLast(1)
+                        onAmountChange(if (newStr.isEmpty()) "0" else newStr)
+                    }
+                },
+                onDateClick = { /* TODO: Date Picker */ },
+                onOkClick = onSave
+            )
+        }
     }
 }

@@ -172,7 +172,7 @@ fun TransactionDetailScreen(
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 24.dp)
+                    .padding(horizontal = 8.dp)
                     .offset(y = (-20).dp) // Overlap with header
                     .background(WarmPaper, RoundedCornerShape(topStart = 32.dp, topEnd = 32.dp))
                     .padding(vertical = 8.dp)
@@ -369,7 +369,7 @@ fun DetailItem(label: String, value: String, onClick: () -> Unit) {
         modifier = Modifier
             .fillMaxWidth()
             .clickable(onClick = onClick)
-            .padding(horizontal = 24.dp, vertical = 20.dp),
+            .padding(horizontal = 24.dp, vertical = 8.dp),
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically
     ) {
@@ -392,7 +392,7 @@ fun DetailItem(label: String, value: String, onClick: () -> Unit) {
     }
     // Divider
     HorizontalDivider(
-        modifier = Modifier.padding(horizontal = 24.dp),
+        modifier = Modifier.padding(horizontal = 8.dp),
         thickness = 0.5.dp,
         color = GrayText.copy(alpha = 0.1f)
     )
