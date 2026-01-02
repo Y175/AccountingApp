@@ -442,7 +442,7 @@ fun StatisticsScreen(
             item {
                 Box(
                     modifier = Modifier
-                        .height(280.dp) // 增加高度
+                        .height(280.dp)
                         .fillMaxWidth()
                         .padding(horizontal = 16.dp),
                     contentAlignment = Alignment.Center
@@ -460,10 +460,42 @@ fun StatisticsScreen(
                                 modifier = Modifier.fillMaxWidth(),
                                 horizontalArrangement = Arrangement.SpaceBetween
                             ) {
-                                val labels = if (selectedTimeRange == TimeRange.WEEK) {
-                                    listOf("Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun")
-                                } else {
-                                    listOf("Start", "...", "End")
+                                val labels = when (selectedTimeRange) {
+                                    TimeRange.WEEK -> {
+                                        listOf("周一", "周二", "周三", "周四", "周五", "周六", "周日")
+                                            .take(chartData.size)
+                                    }
+                                    TimeRange.MONTH -> {
+                                        // 根据数据点数量均匀分布标签
+                                        val dataSize = chartData.size
+                                        if (dataSize <= 1) {
+                                            listOf("1日")
+                                        } else {
+                                            List(minOf(dataSize, 5)) { index ->
+                                                val day = (index * 30 / (minOf(dataSize, 5) - 1)) + 1
+                                                "${day}日"
+                                            }
+                                        }
+                                    }
+                                    TimeRange.YEAR -> {
+                                        // 根据数据点数量显示月份
+                                        val dataSize = chartData.size
+                                        if (dataSize <= 1) {
+                                            listOf("1月")
+                                        } else {
+                                            List(minOf(dataSize, 6)) { index ->
+                                                val month = (index * 12 / (minOf(dataSize, 6) - 1)) + 1
+                                                "${month}月"
+                                            }
+                                        }
+                                    }
+                                    else -> {
+                                        when {
+                                            chartData.isEmpty() -> listOf()
+                                            chartData.size == 1 -> listOf("当前")
+                                            else -> listOf("开始", "结束")
+                                        }
+                                    }
                                 }
                                 labels.forEach {
                                     Text(
@@ -482,13 +514,13 @@ fun StatisticsScreen(
                         ) {
                             if (pieChartData.isNotEmpty()) {
                                 val colors = listOf(
-                                    ChartBlue, ChartOrange, ChartPurple, ChartGreen, 
+                                    ChartBlue, ChartOrange, ChartPurple, ChartGreen,
                                     SoftRed, SoftGreen, FreshAirBlue
                                 )
                                 val coloredData = pieChartData.mapIndexed { index, item ->
                                     item.copy(color = colors[index % colors.size])
                                 }
-                                PieChart(data = coloredData, modifier = Modifier.size(240.dp)) // 增大饼图
+                                PieChart(data = coloredData, modifier = Modifier.size(240.dp))
                             } else {
                                 Text("暂无数据", color = Color.Gray)
                             }

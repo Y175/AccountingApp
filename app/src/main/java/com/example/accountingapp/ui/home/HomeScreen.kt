@@ -1,40 +1,54 @@
 package com.example.accountingapp.ui.home
 
-import androidx.compose.animation.core.*
 import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.graphics.ColorFilter
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.accountingapp.MainViewModel
+import com.example.accountingapp.R
 import com.example.accountingapp.data.Transaction
-import com.example.accountingapp.data.TransactionType
 import com.example.accountingapp.ui.components.AnimatedItem
-import com.example.accountingapp.ui.components.BreathingFAB
 import com.example.accountingapp.ui.components.ElegantDatePickerDialog
 import com.example.accountingapp.ui.components.OverviewCard
 import com.example.accountingapp.ui.components.TransactionItem
-import com.example.accountingapp.ui.theme.*
+import com.example.accountingapp.ui.theme.FreshAirBlue
+import com.example.accountingapp.ui.theme.PureWhite
+import com.example.accountingapp.ui.theme.SlateGray
+import com.example.accountingapp.ui.theme.WarmPaper
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -203,7 +217,7 @@ fun HomeScreen(viewModel: MainViewModel, onTransactionClick: (Int) -> Unit) {
                                 horizontalArrangement = Arrangement.SpaceBetween
                             ) {
                                 Text(
-                                    "RECENT TRANSACTIONS",
+                                    "最近记账明细",
                                     style = MaterialTheme.typography.labelMedium,
                                     color = SlateGray.copy(alpha = 0.7f),
                                     fontWeight = FontWeight.Bold
@@ -232,7 +246,7 @@ fun HomeScreen(viewModel: MainViewModel, onTransactionClick: (Int) -> Unit) {
                             }
                         }
 
-                        // 空状态提示
+// 空状态提示
                         if (transactions.isEmpty()) {
                             item {
                                 Box(
@@ -244,9 +258,10 @@ fun HomeScreen(viewModel: MainViewModel, onTransactionClick: (Int) -> Unit) {
                                     Column(
                                         horizontalAlignment = Alignment.CenterHorizontally
                                     ) {
-                                        Text(
-                                            text = "📝",
-                                            style = MaterialTheme.typography.displayMedium
+                                        Image(
+                                            painter = painterResource(id = R.drawable.empty_transaction),
+                                            contentDescription = "空状态图标",
+                                            modifier = Modifier.size(160.dp), // 根据需要调整大小
                                         )
                                         Spacer(modifier = Modifier.height(16.dp))
                                         Text(
@@ -257,7 +272,7 @@ fun HomeScreen(viewModel: MainViewModel, onTransactionClick: (Int) -> Unit) {
                                         )
                                         Spacer(modifier = Modifier.height(8.dp))
                                         Text(
-                                            text = "点击右下角按钮开始记账吧~",
+                                            text = "点击+按钮开始记账吧~",
                                             style = MaterialTheme.typography.bodyMedium,
                                             color = SlateGray.copy(alpha = 0.6f)
                                         )

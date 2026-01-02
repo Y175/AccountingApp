@@ -369,7 +369,7 @@ fun DetailItem(label: String, value: String, onClick: () -> Unit) {
         modifier = Modifier
             .fillMaxWidth()
             .clickable(onClick = onClick)
-            .padding(horizontal = 24.dp, vertical = 8.dp),
+            .padding(horizontal = 24.dp, vertical = 16.dp),
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically
     ) {
@@ -392,7 +392,7 @@ fun DetailItem(label: String, value: String, onClick: () -> Unit) {
     }
     // Divider
     HorizontalDivider(
-        modifier = Modifier.padding(horizontal = 8.dp),
+        modifier = Modifier.padding(horizontal = 16.dp),
         thickness = 0.5.dp,
         color = GrayText.copy(alpha = 0.1f)
     )
